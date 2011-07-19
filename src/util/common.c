@@ -43,20 +43,25 @@ float *AllocFloatArray(int n)
   return(v);
 }
 
-void Error(char *msg,char *func){ /* It prints error message and exits
-                                    the program. */
+void Error(char *msg,char *func)
+{
+  /* It prints error message and exits
+                                      the program. */
   fprintf(stderr,"Error:%s in %s\n",msg,func);
   exit(-1);
 }
 
-void Warning(char *msg,char *func){ /* It prints warning message and
-                                       leaves the routine. */
- fprintf(stdout,"Warning:%s in %s\n",msg,func);
+void Warning(char *msg,char *func)
+{
+  /* It prints warning message and
+                                         leaves the routine. */
+  fprintf(stdout,"Warning:%s in %s\n",msg,func);
 
 }
 
 
-inline void Change(int *a, int *b){ /* It changes content between a and b */
+inline void Change(int *a, int *b)  /* It changes content between a and b */
+{
   const int c = *a;
   *a = *b;
   *b = c;
@@ -66,7 +71,8 @@ inline void Change(int *a, int *b){ /* It changes content between a and b */
  * Generates a random number within [low,high].
 http://www.ime.usp.br/~pf/algoritmos/aulas/random.html
  */
-int RandomInteger (int low, int high){
+int RandomInteger (int low, int high)
+{
   int k;
   double d;
 
