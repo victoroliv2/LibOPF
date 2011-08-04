@@ -137,7 +137,7 @@ create_real_heap (int n, float *cost)
       H->last = -1;
       H->removal_policy = REMOVAL_POLICY_MIN;
       if (H->color == NULL || H->pos == NULL || H->pixel == NULL)
-        Error (MSG1, "create_real_heap");
+        error (LOG_OUT_OF_MEMORY);
       for (i = 0; i < H->n; i++)
         {
           H->color[i] = COLOR_WHITE;
@@ -146,7 +146,7 @@ create_real_heap (int n, float *cost)
         }
     }
   else
-    Error (MSG1, "create_real_heap");
+    error (LOG_OUT_OF_MEMORY);
 
   return H;
 }

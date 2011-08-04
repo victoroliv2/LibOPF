@@ -16,6 +16,7 @@
   This program is a collection of functions to manage the Optimum-Path Forest (OPF)
   classifier.*/
 
+#include "assert.h"
 #include "subgraph.h"
 
 /*----------- Constructor and destructor ------------------------*/
@@ -31,9 +32,7 @@ CreateSubgraph (int nnodes)
   sg->ordered_list_of_nodes = (int *) calloc (nnodes, sizeof (int));
 
   if (sg->node == NULL)
-    {
-      Error ("Cannot allocate nodes", "CreateSubgraph");
-    }
+    error (LOG_OUT_OF_MEMORY);
 
   for (i = 0; i < sg->nnodes; i++)
     {
@@ -144,8 +143,7 @@ opf_ResetSubgraph (Subgraph * sg)
 Subgraph *
 opf_MergeSubgraph (Subgraph * sg1, Subgraph * sg2)
 {
-  if (sg1->nfeats != sg2->nfeats)
-    Error ("Invalid number of feats!", "MergeSubgraph");
+  assert (sg1->nfeats == sg2->nfeats);
 
   Subgraph *out = CreateSubgraph (sg1->nnodes + sg2->nnodes);
   int i = 0, j;
