@@ -1042,40 +1042,6 @@ opf_ConfusionMatrix (Subgraph * sg)
   return opf_ConfusionMatrix;
 }
 
-
-//read distances from precomputed distances file
-float **
-opf_ReadDistances (char *fileName, int *n)
-{
-  int nsamples, i;
-  FILE *fp = NULL;
-  float **M = NULL;
-  char msg[256];
-  size_t result;
-
-  fp = fopen (fileName, "rb");
-
-  if ((fp == NULL))
-    {
-      sprintf (msg, "%s%s", "Unable to open file ", fileName);
-      Error (msg, "opf_ReadDistances");
-    }
-
-  result = fread (&nsamples, sizeof (int), 1, fp);
-  *n = nsamples;
-  M = (float **) malloc (nsamples * sizeof (float *));
-
-  for (i = 0; i < nsamples; i++)
-    {
-      M[i] = (float *) malloc (nsamples * sizeof (float));
-      result = fread (M[i], sizeof (float), nsamples, fp);
-    }
-
-  fclose (fp);
-
-  return M;
-}
-
 // Normalized cut
 float
 opf_NormalizedCut (Subgraph * sg)
