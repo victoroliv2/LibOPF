@@ -245,13 +245,13 @@ opf_OPFAgglomerativeLearning (Subgraph ** sgtrain, Subgraph ** sgeval)
 void
 opf_OPFClustering (Subgraph * sg)
 {
-  Set *adj_i, *adj_j;
+  set *adj_i, *adj_j;
   char insert_i;
   int i, j;
   int p, q, l;
   float tmp, *pathval = NULL;
   RealHeap *Q = NULL;
-  Set *Saux = NULL;
+  set *Saux = NULL;
 
   //   Add arcs to guarantee symmetry on plateaus
   for (i = 0; i < sg->nnodes; i++)
@@ -275,7 +275,7 @@ opf_OPFClustering (Subgraph * sg)
                   adj_j = adj_j->next;
                 }
               if (insert_i)
-                InsertSet (&(sg->node[j].adj), i);
+                set_insert (&(sg->node[j].adj), i);
             }
           adj_i = adj_i->next;
         }
@@ -1013,7 +1013,7 @@ float
 opf_NormalizedCut (Subgraph * sg)
 {
   int l, p, q;
-  Set *Saux;
+  set *Saux;
   float ncut, dist;
   float *acumIC;                //acumulate weights inside each class
   float *acumEC;                //acumulate weights between the class and a distinct one
@@ -1147,7 +1147,7 @@ opf_CreateArcs (Subgraph * sg, int knn)
                 sg->df = d[l];
               //if (d[l] > sg->node[i].radius)
               sg->node[i].radius = d[l];
-              InsertSet (&(sg->node[i].adj), nn[l]);
+              set_insert (&(sg->node[i].adj), nn[l]);
             }
         }
     }
@@ -1166,8 +1166,8 @@ opf_DestroyArcs (Subgraph * sg)
 
   for (i = 0; i < sg->nnodes; i++)
     {
-      sg->node[i].nplatadj = 0;
-      DestroySet (&(sg->node[i].adj));
+        sg->node[i].nplatadj = 0;
+        set_destroy (&(sg->node[i].adj));
     }
 }
 
@@ -1178,7 +1178,7 @@ opf_PDF (Subgraph * sg)
   int i, nelems;
   double dist;
   float *value = AllocFloatArray (sg->nnodes);
-  Set *adj = NULL;
+  set *adj = NULL;
 
   sg->K = (2.0 * (float) sg->df / 9.0);
   sg->mindens = FLT_MAX;
@@ -1338,7 +1338,7 @@ opf_CreateArcs2 (Subgraph * sg, int kmax)
               if (d[l] > maxdists[l])
                 maxdists[l] = d[l];
               //adding the current neighbor at the beginnig of the list
-              InsertSet (&(sg->node[i].adj), nn[l]);
+              set_insert (&(sg->node[i].adj), nn[l]);
             }
         }
     }
@@ -1355,14 +1355,14 @@ opf_CreateArcs2 (Subgraph * sg, int kmax)
 void
 opf_OPFClusteringToKmax (Subgraph * sg)
 {
-  Set *adj_i, *adj_j;
+  set *adj_i, *adj_j;
   char insert_i;
   int i, j;
   int p, q, l, ki, kj;
   const int kmax = sg->bestk;
   float tmp, *pathval = NULL;
   RealHeap *Q = NULL;
-  Set *Saux = NULL;
+  set *Saux = NULL;
 
   //   Add arcs to guarantee symmetry on plateaus
   for (i = 0; i < sg->nnodes; i++)
@@ -1390,7 +1390,7 @@ opf_OPFClusteringToKmax (Subgraph * sg)
                 }
               if (insert_i)
                 {
-                  InsertSet (&(sg->node[j].adj), i);
+                  set_insert (&(sg->node[j].adj), i);
                   sg->node[j].nplatadj++;       //number of adjacent nodes on
                   //plateaus (includes adjacent plateau
                   //nodes computed for previous kmax's)
@@ -1464,7 +1464,7 @@ opf_PDFtoKmax (Subgraph * sg)
   const int kmax = sg->bestk;
   double dist;
   float *value = AllocFloatArray (sg->nnodes);
-  Set *adj = NULL;
+  set *adj = NULL;
 
   sg->K = (2.0 * (float) sg->df / 9.0);
 
@@ -1531,7 +1531,7 @@ opf_NormalizedCutToKmax (Subgraph * sg)
 {
   int l, p, q, k;
   const int kmax = sg->bestk;
-  Set *Saux;
+  set *Saux;
   float ncut, dist;
   float *acumIC;                //acumulate weights inside each class
   float *acumEC;                //acumulate weights between the class and a distinct one

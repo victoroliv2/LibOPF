@@ -1,11 +1,11 @@
 /*
   Copyright (C) <2009-2011> <Alexandre Xavier Falcão and João Paulo Papa>
 
-	Redistributions of source code must retain the above copyright notice, this
-	list of conditions and the following disclaimer.
-	Redistributions in binary form must reproduce the above copyright notice,
-	this list of conditions and the following disclaimer in the documentation
-	and/or other materials provided with the distribution.
+  Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+  Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
 
   please see full copyright in COPYING file.
 
@@ -19,14 +19,14 @@
 #include "set.h"
 
 void
-InsertSet (Set ** S, int elem)
+set_insert (set ** s, int elem)
 {
-  Set *p = NULL;
+  set *p = NULL;
 
-  p = (Set *) calloc (1, sizeof (Set));
+  p = (set *) calloc (1, sizeof (set));
   if (p == NULL)
-    Error (MSG1, "InsertSet");
-  if (*S == NULL)
+    error (LOG_OUT_OF_MEMORY);
+  if (*s == NULL)
     {
       p->elem = elem;
       p->next = NULL;
@@ -34,39 +34,36 @@ InsertSet (Set ** S, int elem)
   else
     {
       p->elem = elem;
-      p->next = *S;
+      p->next = *s;
     }
-  *S = p;
+  *s = p;
 }
 
 int
-RemoveSet (Set ** S)
+set_remove (set ** s)
 {
-  Set *p;
+  set *p;
   int elem = NIL;
 
-  if (*S != NULL)
+  if (*s != NULL)
     {
-      p = *S;
+      p = *s;
       elem = p->elem;
-      *S = p->next;
-      //printf("RemoveSet before free");
+      *s = p->next;
       free (p);
-      //printf(" RemoveSet after free: elem is %d\n",elem);
-      //if(*S != NULL) printf(" *S->elem is %d\n",(*S)->elem);
     }
 
-  return (elem);
+  return elem;
 }
 
 
 int
-GetSetSize (Set * S)
+set_get_size (set * s)
 {
-  Set *aux;
+  set *aux;
   int size = 0;
 
-  aux = S;
+  aux = s;
   while (aux != NULL)
     {
       size++;
@@ -75,20 +72,20 @@ GetSetSize (Set * S)
   return size;
 }
 
-Set *
-CloneSet (Set * S)
+set *
+set_clone (set * s)
 {
-  Set *tmp = NULL;
-  Set *C = NULL;
-  Set **tail = NULL;
+  set *tmp = NULL;
+  set *C = NULL;
+  set **tail = NULL;
   int p;
 
-  tmp = S;
+  tmp = s;
 
   if (tmp != NULL)
     {
       p = tmp->elem;
-      C = (Set *) calloc (1, sizeof (Set));
+      C = (set *) calloc (1, sizeof (set));
       C->elem = p;
       C->next = NULL;
       tail = &(C->next);
@@ -98,7 +95,7 @@ CloneSet (Set * S)
   while (tmp != NULL)
     {
       p = tmp->elem;
-      *tail = (Set *) calloc (1, sizeof (Set));
+      *tail = (set *) calloc (1, sizeof (set));
       (*tail)->elem = p;
       (*tail)->next = NULL;
       tail = &((*tail)->next);
@@ -108,13 +105,13 @@ CloneSet (Set * S)
 }
 
 void
-DestroySet (Set ** S)
+set_destroy (set ** s)
 {
-  Set *p;
-  while (*S != NULL)
+  set *p;
+  while (*s != NULL)
     {
-      p = *S;
-      *S = p->next;
+      p = *s;
+      *s = p->next;
       free (p);
     }
 }

@@ -57,7 +57,7 @@ DestroySubgraph (Subgraph ** sg)
           if ((*sg)->node[i].feat != NULL)
             free ((*sg)->node[i].feat);
           if ((*sg)->node[i].adj != NULL)
-            DestroySet (&(*sg)->node[i].adj);
+            set_destroy (&(*sg)->node[i].adj);
         }
       free ((*sg)->node);
       free ((*sg)->ordered_list_of_nodes);
@@ -115,7 +115,7 @@ CopySNode (SNode * dest, SNode * src, int nfeats)
   dest->radius = src->radius;
   dest->nplatadj = src->nplatadj;
 
-  dest->adj = CloneSet (src->adj);
+  dest->adj = set_clone (src->adj);
 }
 
 
