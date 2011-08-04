@@ -43,6 +43,9 @@ typedef struct
   set    *adj;                  /* adjacency list for knn graphs */
 } snode;
 
+void snode_copy (snode * dest, snode * src, int feat_n); /* copy nodes */
+void snode_swap (snode * a, snode * b);                  /* swap nodes */
+
 typedef struct
 {
   snode  *node;                  /* nodes of the image/scene subgraph                   */
@@ -59,16 +62,9 @@ typedef struct
                                   */
 } subgraph;
 
-subgraph *subgraph_create  (int node_n);                            /* allocates nodes
-                                                                     * without features
-                                                                     */
-void      subgraph_destroy (subgraph ** sg);                        /* deallocates memory
-                                                                     * for subgraph
-                                                                     */
-subgraph *subgraph_copy    (subgraph * g);                          /* copy subgraph
-                                                                     * (does not copy
-                                                                     * arcs)
-                                                                     */
-void      snode_copy       (snode * dest, snode * src, int feat_n); /* copy nodes */
-void      snode_swap       (snode * a, snode * b);                  /* swap nodes */
+subgraph *subgraph_create  (int node_n);                     /* allocates nodes without features       */
+void      subgraph_destroy (subgraph ** sg);                 /* deallocates memory for subgraph        */
+void      subgraph_reset   (subgraph * sg);                  /* resets subgraph fields (pred and arcs) */
+subgraph *subgraph_copy    (subgraph * g);                   /* copy subgraph (does not copy arcs)     */
+subgraph *subgraph_merge   (subgraph * sg1, subgraph * sg2); /* merge two subgraphs                    */
 #endif /* _SUBGRAPH_H_ */

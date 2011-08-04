@@ -336,15 +336,6 @@ opf_OPFClustering (Subgraph * sg)
 
 /*------------ Auxiliary functions ------------------------------ */
 //Resets subgraph fields (pred and arcs)
-void
-opf_ResetSubgraph (Subgraph * sg)
-{
-  int i;
-
-  for (i = 0; i < sg->nnodes; i++)
-    sg->node[i].pred = NIL;
-  opf_DestroyArcs (sg);
-}
 
 //Replace errors from evaluating set by non prototypes from training set
 void
@@ -946,32 +937,7 @@ opf_SplitSubgraph (Subgraph * sg, Subgraph ** sg1, Subgraph ** sg2,
   free (nelems);
 }
 
-//Merge two subgraphs
-Subgraph *
-opf_MergeSubgraph (Subgraph * sg1, Subgraph * sg2)
-{
-  if (sg1->nfeats != sg2->nfeats)
-    Error ("Invalid number of feats!", "MergeSubgraph");
 
-  Subgraph *out = CreateSubgraph (sg1->nnodes + sg2->nnodes);
-  int i = 0, j;
-
-  if (sg1->nlabels > sg2->nlabels)
-    out->nlabels = sg1->nlabels;
-  else
-    out->nlabels = sg2->nlabels;
-  out->nfeats = sg1->nfeats;
-
-  for (i = 0; i < sg1->nnodes; i++)
-    CopySNode (&out->node[i], &sg1->node[i], out->nfeats);
-  for (j = 0; j < sg2->nnodes; j++)
-    {
-      CopySNode (&out->node[i], &sg2->node[j], out->nfeats);
-      i++;
-    }
-
-  return out;
-}
 
 // Compute accuracy
 float
