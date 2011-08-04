@@ -10,66 +10,66 @@ FLAGS=-g -Wall
 
 INCFLAGS = -I$(INCLUDE)
 
-all: libOPF opf_split opf_accuracy opf_train opf_classify opf_learn opf_distance opf_info opf_fold opf_merge opf_cluster opf_knn_classify statistics txt2opf
+all: libopf opf_split opf_accuracy opf_train opf_classify opf_learn opf_distance opf_info opf_fold opf_merge opf_cluster opf_knn_classify statistics txt2opf
 
-libOPF: libOPF-build
-	echo "libOPF.a built..."
+libopf: libopf-build
+	echo "libopf.a built..."
 
-libOPF-build: \
+libopf-build: \
 aux \
-$(OBJ)/OPF.o \
+$(OBJ)/opf.o \
 
-	ar csr $(LIB)/libOPF.a \
+	ar csr $(LIB)/libopf.a \
 $(OBJ)/common.o \
 $(OBJ)/set.o \
 $(OBJ)/gqueue.o \
 $(OBJ)/realheap.o \
 $(OBJ)/sgctree.o \
 $(OBJ)/subgraph.o \
-$(OBJ)/OPF.o \
+$(OBJ)/opf.o \
 
-$(OBJ)/OPF.o: $(SRC)/OPF.c
-	$(CC) $(FLAGS) -c $(SRC)/OPF.c $(INCFLAGS) \
-	-o $(OBJ)/OPF.o
+$(OBJ)/opf.o: $(SRC)/opf.c
+	$(CC) $(FLAGS) -c $(SRC)/opf.c $(INCFLAGS) \
+	-o $(OBJ)/opf.o
 
-opf_split: libOPF
-	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_split.c  -L./lib -o bin/opf_split -lOPF -lm
+opf_split: libopf
+	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_split.c  -L./lib -o bin/opf_split -lopf -lm
 
-opf_accuracy: libOPF
-	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_accuracy.c  -L./lib -o bin/opf_accuracy -lOPF -lm
+opf_accuracy: libopf
+	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_accuracy.c  -L./lib -o bin/opf_accuracy -lopf -lm
 
-opf_train: libOPF
-	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_train.c  -L./lib -o bin/opf_train -lOPF -lm
+opf_train: libopf
+	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_train.c  -L./lib -o bin/opf_train -lopf -lm
 
-opf_classify: libOPF
-	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_classify.c  -L./lib -o bin/opf_classify -lOPF -lm
+opf_classify: libopf
+	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_classify.c  -L./lib -o bin/opf_classify -lopf -lm
 
-opf_learn: libOPF
-	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_learn.c  -L./lib -o bin/opf_learn -lOPF -lm
+opf_learn: libopf
+	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_learn.c  -L./lib -o bin/opf_learn -lopf -lm
 
-opf_distance: libOPF
-	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_distance.c  -L./lib -o bin/opf_distance -lOPF -lm
+opf_distance: libopf
+	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_distance.c  -L./lib -o bin/opf_distance -lopf -lm
 
-opf_info: libOPF
-	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_info.c  -L./lib -o bin/opf_info -lOPF -lm
+opf_info: libopf
+	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_info.c  -L./lib -o bin/opf_info -lopf -lm
 
-opf_fold: libOPF
-	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_fold.c  -L./lib -o bin/opf_fold -lOPF -lm
+opf_fold: libopf
+	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_fold.c  -L./lib -o bin/opf_fold -lopf -lm
 
-opf_merge: libOPF
-	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_merge.c  -L./lib -o bin/opf_merge -lOPF -lm
+opf_merge: libopf
+	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_merge.c  -L./lib -o bin/opf_merge -lopf -lm
 
-opf_cluster: libOPF
-	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_cluster.c  -L./lib -o bin/opf_cluster -lOPF -lm
+opf_cluster: libopf
+	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_cluster.c  -L./lib -o bin/opf_cluster -lopf -lm
 
-opf_knn_classify: libOPF
-	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_knn_classify.c  -L./lib -o bin/opf_knn_classify -lOPF -lm
+opf_knn_classify: libopf
+	$(CC) $(FLAGS) $(INCFLAGS) src/utilities/opf_knn_classify.c  -L./lib -o bin/opf_knn_classify -lopf -lm
 
 statistics:
 	$(CC) $(FLAGS) tools/src/statistics.c  -o tools/statistics -lm
 
-txt2opf: libOPF
-	$(CC) $(FLAGS) $(INCFLAGS) tools/src/txt2opf.c  -L./lib -o tools/txt2opf -lOPF -lm
+txt2opf: libopf
+	$(CC) $(FLAGS) $(INCFLAGS) tools/src/txt2opf.c  -L./lib -o tools/txt2opf -lopf -lm
 
 aux: $(SRC)/common.c $(SRC)/set.c $(SRC)/gqueue.c $(SRC)/realheap.c $(SRC)/sgctree.c $(SRC)/subgraph.c
 	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/common.c -o $(OBJ)/common.o
