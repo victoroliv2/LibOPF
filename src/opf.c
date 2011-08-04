@@ -30,7 +30,7 @@ opf_OPFTraining (Subgraph * sg)
 {
   int p, q, i;
   float tmp, weight;
-  RealHeap *Q = NULL;
+  real_heap *Q = NULL;
   float *pathval = NULL;
 
   // compute optimum prototypes
@@ -39,7 +39,7 @@ opf_OPFTraining (Subgraph * sg)
   // initialization
   pathval = AllocFloatArray (sg->nnodes);
 
-  Q = CreateRealHeap (sg->nnodes, pathval);
+  Q = create_real_heap (sg->nnodes, pathval);
 
   for (p = 0; p < sg->nnodes; p++)
     {
@@ -48,7 +48,7 @@ opf_OPFTraining (Subgraph * sg)
           sg->node[p].pred = NIL;
           pathval[p] = 0;
           sg->node[p].label = sg->node[p].truelabel;
-          InsertRealHeap (Q, p);
+          real_heap_insert (Q, p);
         }
       else                      // non-prototypes
         {
@@ -58,9 +58,9 @@ opf_OPFTraining (Subgraph * sg)
 
   // IFT with fmax
   i = 0;
-  while (!IsEmptyRealHeap (Q))
+  while (!real_heap_is_empty (Q))
     {
-      RemoveRealHeap (Q, &p);
+      real_heap_remove (Q, &p);
 
       sg->ordered_list_of_nodes[i] = p;
       i++;
@@ -86,14 +86,14 @@ opf_OPFTraining (Subgraph * sg)
                     {
                       sg->node[q].pred = p;
                       sg->node[q].label = sg->node[p].label;
-                      UpdateRealHeap (Q, q, tmp);
+                      real_heap_update (Q, q, tmp);
                     }
                 }
             }
         }
     }
 
-  DestroyRealHeap (&Q);
+  real_heap_destroy (&Q);
   free (pathval);
 }
 
@@ -250,7 +250,7 @@ opf_OPFClustering (Subgraph * sg)
   int i, j;
   int p, q, l;
   float tmp, *pathval = NULL;
-  RealHeap *Q = NULL;
+  real_heap *Q = NULL;
   set *Saux = NULL;
 
   //   Add arcs to guarantee symmetry on plateaus
@@ -284,22 +284,22 @@ opf_OPFClustering (Subgraph * sg)
   // Compute clustering
 
   pathval = AllocFloatArray (sg->nnodes);
-  Q = CreateRealHeap (sg->nnodes, pathval);
-  SetRemovalPolicyRealHeap (Q, MAXVALUE);
+  Q = create_real_heap (sg->nnodes, pathval);
+  real_heap_set_removal_policy (Q, REMOVAL_POLICY_MAX);
 
   for (p = 0; p < sg->nnodes; p++)
     {
       pathval[p] = sg->node[p].pathval;
       sg->node[p].pred = NIL;
       sg->node[p].root = p;
-      InsertRealHeap (Q, p);
+      real_heap_insert (Q, p);
     }
 
   l = 0;
   i = 0;
-  while (!IsEmptyRealHeap (Q))
+  while (!real_heap_is_empty (Q))
     {
-      RemoveRealHeap (Q, &p);
+      real_heap_remove (Q, &p);
       sg->ordered_list_of_nodes[i] = p;
       i++;
 
@@ -314,12 +314,12 @@ opf_OPFClustering (Subgraph * sg)
       for (Saux = sg->node[p].adj; Saux != NULL; Saux = Saux->next)
         {
           q = Saux->elem;
-          if (Q->color[q] != BLACK)
+          if (Q->color[q] != COLOR_BLACK)
             {
               tmp = MIN (pathval[p], sg->node[q].dens);
               if (tmp > pathval[q])
                 {
-                  UpdateRealHeap (Q, q, tmp);
+                  real_heap_update (Q, q, tmp);
                   sg->node[q].pred = p;
                   sg->node[q].root = sg->node[p].root;
                   sg->node[q].label = sg->node[p].label;
@@ -330,7 +330,7 @@ opf_OPFClustering (Subgraph * sg)
 
   sg->nlabels = l;
 
-  DestroyRealHeap (&Q);
+  real_heap_destroy (&Q);
   free (pathval);
 }
 
@@ -556,14 +556,14 @@ opf_MSTPrototypes (Subgraph * sg)
 {
   int p, q;
   float weight;
-  RealHeap *Q = NULL;
+  real_heap *Q = NULL;
   float *pathval = NULL;
   int pred;
   float nproto;
 
   // initialization
   pathval = AllocFloatArray (sg->nnodes);
-  Q = CreateRealHeap (sg->nnodes, pathval);
+  Q = create_real_heap (sg->nnodes, pathval);
 
   for (p = 0; p < sg->nnodes; p++)
     {
@@ -573,14 +573,14 @@ opf_MSTPrototypes (Subgraph * sg)
 
   pathval[0] = 0;
   sg->node[0].pred = NIL;
-  InsertRealHeap (Q, 0);
+  real_heap_insert (Q, 0);
 
   nproto = 0.0;
 
   // Prim's algorithm for Minimum Spanning Tree
-  while (!IsEmptyRealHeap (Q))
+  while (!real_heap_is_empty (Q))
     {
-      RemoveRealHeap (Q, &p);
+      real_heap_remove (Q, &p);
       sg->node[p].pathval = pathval[p];
 
       pred = sg->node[p].pred;
@@ -601,7 +601,7 @@ opf_MSTPrototypes (Subgraph * sg)
 
       for (q = 0; q < sg->nnodes; q++)
         {
-          if (Q->color[q] != BLACK)
+          if (Q->color[q] != COLOR_BLACK)
             {
               if (p != q)
                 {
@@ -617,13 +617,13 @@ opf_MSTPrototypes (Subgraph * sg)
                   if (weight < pathval[q])
                     {
                       sg->node[q].pred = p;
-                      UpdateRealHeap (Q, q, weight);
+                      real_heap_update (Q, q, weight);
                     }
                 }
             }
         }
     }
-  DestroyRealHeap (&Q);
+  real_heap_destroy (&Q);
   free (pathval);
 
 }
@@ -1361,7 +1361,7 @@ opf_OPFClusteringToKmax (Subgraph * sg)
   int p, q, l, ki, kj;
   const int kmax = sg->bestk;
   float tmp, *pathval = NULL;
-  RealHeap *Q = NULL;
+  real_heap *Q = NULL;
   set *Saux = NULL;
 
   //   Add arcs to guarantee symmetry on plateaus
@@ -1404,22 +1404,22 @@ opf_OPFClusteringToKmax (Subgraph * sg)
   // Compute clustering
 
   pathval = AllocFloatArray (sg->nnodes);
-  Q = CreateRealHeap (sg->nnodes, pathval);
-  SetRemovalPolicyRealHeap (Q, MAXVALUE);
+  Q = create_real_heap (sg->nnodes, pathval);
+  real_heap_set_removal_policy (Q, REMOVAL_POLICY_MAX);
 
   for (p = 0; p < sg->nnodes; p++)
     {
       pathval[p] = sg->node[p].pathval;
       sg->node[p].pred = NIL;
       sg->node[p].root = p;
-      InsertRealHeap (Q, p);
+      real_heap_insert (Q, p);
     }
 
   l = 0;
   i = 0;
-  while (!IsEmptyRealHeap (Q))
+  while (!real_heap_is_empty (Q))
     {
-      RemoveRealHeap (Q, &p);
+      real_heap_remove (Q, &p);
       sg->ordered_list_of_nodes[i] = p;
       i++;
 
@@ -1436,12 +1436,12 @@ opf_OPFClusteringToKmax (Subgraph * sg)
            Saux = Saux->next, ki++)
         {
           q = Saux->elem;
-          if (Q->color[q] != BLACK)
+          if (Q->color[q] != COLOR_BLACK)
             {
               tmp = MIN (pathval[p], sg->node[q].dens);
               if (tmp > pathval[q])
                 {
-                  UpdateRealHeap (Q, q, tmp);
+                  real_heap_update (Q, q, tmp);
                   sg->node[q].pred = p;
                   sg->node[q].root = sg->node[p].root;
                   sg->node[q].label = sg->node[p].label;
@@ -1452,7 +1452,7 @@ opf_OPFClusteringToKmax (Subgraph * sg)
 
   sg->nlabels = l;
 
-  DestroyRealHeap (&Q);
+  real_heap_destroy (&Q);
   free (pathval);
 }
 

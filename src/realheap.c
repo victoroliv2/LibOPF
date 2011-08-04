@@ -19,21 +19,21 @@
 #include "realheap.h"
 
 void
-SetRemovalPolicyRealHeap (RealHeap * H, char policy)
+real_heap_set_removal_policy (real_heap * H, REMOVAL_POLICY policy)
 {
   if (H->removal_policy != policy)
     {
       H->removal_policy = policy;
-      ResetRealHeap (H);
+      real_heap_reset (H);
     }
 }
 
 void
-GoUpRealHeap (RealHeap * H, int i)
+real_heap_go_up (real_heap * H, int i)
 {
   int j = HEAP_DAD (i);
 
-  if (H->removal_policy == MINVALUE)
+  if (H->removal_policy == REMOVAL_POLICY_MIN)
     {
 
       while ((i > 0) && (H->cost[H->pixel[j]] > H->cost[H->pixel[i]]))
@@ -45,7 +45,7 @@ GoUpRealHeap (RealHeap * H, int i)
           j = HEAP_DAD (i);
         }
     }
-  else                          /* removal_policy == MAXVALUE */
+  else                          /* removal_policy == REMOVAL_POLICY_MAX */
     {
 
       while ((i > 0) && (H->cost[H->pixel[j]] < H->cost[H->pixel[i]]))
@@ -60,12 +60,12 @@ GoUpRealHeap (RealHeap * H, int i)
 }
 
 void
-GoDownRealHeap (RealHeap * H, int i)
+real_heap_go_down (real_heap * H, int i)
 {
   int j, left = HEAP_LEFTSON (i), right = HEAP_RIGHTSON (i);
 
   j = i;
-  if (H->removal_policy == MINVALUE)
+  if (H->removal_policy == REMOVAL_POLICY_MIN)
     {
 
       if ((left <= H->last) &&
@@ -75,7 +75,7 @@ GoDownRealHeap (RealHeap * H, int i)
           (H->cost[H->pixel[right]] < H->cost[H->pixel[j]]))
         j = right;
     }
-  else                          /* removal_policy == MAXVALUE */
+  else                          /* removal_policy == REMOVAL_POLICY_MAX */
     {
 
       if ((left <= H->last) &&
@@ -91,12 +91,12 @@ GoDownRealHeap (RealHeap * H, int i)
       Change (&H->pixel[j], &H->pixel[i]);
       H->pos[H->pixel[i]] = i;
       H->pos[H->pixel[j]] = j;
-      GoDownRealHeap (H, j);
+      real_heap_go_down (H, j);
     }
 }
 
 char
-IsFullRealHeap (RealHeap * H)
+real_heap_is_full (real_heap * H)
 {
   if (H->last == (H->n - 1))
     return 1;
@@ -105,7 +105,7 @@ IsFullRealHeap (RealHeap * H)
 }
 
 char
-IsEmptyRealHeap (RealHeap * H)
+real_heap_is_empty (real_heap * H)
 {
   if (H->last == -1)
     return 1;
@@ -113,20 +113,20 @@ IsEmptyRealHeap (RealHeap * H)
     return 0;
 }
 
-RealHeap *
-CreateRealHeap (int n, float *cost)
+real_heap *
+create_real_heap (int n, float *cost)
 {
-  RealHeap *H = NULL;
+  real_heap *H = NULL;
   int i;
 
   if (cost == NULL)
     {
       fprintf (stdout,
-               "Cannot create heap without cost map in CreateRealHeap");
+               "Cannot create heap without cost map in create_real_heap");
       return NULL;
     }
 
-  H = (RealHeap *) malloc (sizeof (RealHeap));
+  H = (real_heap *) malloc (sizeof (real_heap));
   if (H != NULL)
     {
       H->n = n;
@@ -135,26 +135,26 @@ CreateRealHeap (int n, float *cost)
       H->pixel = (int *) malloc (sizeof (int) * n);
       H->pos = (int *) malloc (sizeof (int) * n);
       H->last = -1;
-      H->removal_policy = MINVALUE;
+      H->removal_policy = REMOVAL_POLICY_MIN;
       if (H->color == NULL || H->pos == NULL || H->pixel == NULL)
-        Error (MSG1, "CreateRealHeap");
+        Error (MSG1, "create_real_heap");
       for (i = 0; i < H->n; i++)
         {
-          H->color[i] = WHITE;
+          H->color[i] = COLOR_WHITE;
           H->pos[i] = -1;
           H->pixel[i] = -1;
         }
     }
   else
-    Error (MSG1, "CreateRealHeap");
+    Error (MSG1, "create_real_heap");
 
   return H;
 }
 
 void
-DestroyRealHeap (RealHeap ** H)
+real_heap_destroy (real_heap ** H)
 {
-  RealHeap *aux = *H;
+  real_heap *aux = *H;
   if (aux != NULL)
     {
       if (aux->pixel != NULL)
@@ -169,15 +169,15 @@ DestroyRealHeap (RealHeap ** H)
 }
 
 char
-InsertRealHeap (RealHeap * H, int pixel)
+real_heap_insert (real_heap * H, int pixel)
 {
-  if (!IsFullRealHeap (H))
+  if (!real_heap_is_full (H))
     {
       H->last++;
       H->pixel[H->last] = pixel;
       H->color[pixel] = GRAY;
       H->pos[pixel] = H->last;
-      GoUpRealHeap (H, H->last);
+      real_heap_go_up (H, H->last);
       return 1;
     }
   else
@@ -185,18 +185,18 @@ InsertRealHeap (RealHeap * H, int pixel)
 }
 
 char
-RemoveRealHeap (RealHeap * H, int *pixel)
+real_heap_remove (real_heap * H, int *pixel)
 {
-  if (!IsEmptyRealHeap (H))
+  if (!real_heap_is_empty (H))
     {
       *pixel = H->pixel[0];
       H->pos[*pixel] = -1;
-      H->color[*pixel] = BLACK;
+      H->color[*pixel] = COLOR_BLACK;
       H->pixel[0] = H->pixel[H->last];
       H->pos[H->pixel[0]] = 0;
       H->pixel[H->last] = -1;
       H->last--;
-      GoDownRealHeap (H, 0);
+      real_heap_go_down (H, 0);
       return 1;
     }
   else
@@ -205,29 +205,29 @@ RemoveRealHeap (RealHeap * H, int *pixel)
 
 
 void
-UpdateRealHeap (RealHeap * H, int p, float value)
+real_heap_update (real_heap * H, int p, float value)
 {
   H->cost[p] = value;
 
-  if (H->color[p] == BLACK)
+  if (H->color[p] == COLOR_BLACK)
     {
       printf ("error: p has been removed\n");
     }
 
-  if (H->color[p] == WHITE)
-    InsertRealHeap (H, p);
+  if (H->color[p] == COLOR_WHITE)
+    real_heap_insert (H, p);
   else
-    GoUpRealHeap (H, H->pos[p]);
+    real_heap_go_up (H, H->pos[p]);
 }
 
 void
-ResetRealHeap (RealHeap * H)
+real_heap_reset (real_heap * H)
 {
   int i;
 
   for (i = 0; i < H->n; i++)
     {
-      H->color[i] = WHITE;
+      H->color[i] = COLOR_WHITE;
       H->pos[i] = -1;
       H->pixel[i] = -1;
     }

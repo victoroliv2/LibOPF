@@ -8,6 +8,12 @@
 #define HEAP_LEFTSON(i)  (2 * i + 1)
 #define HEAP_RIGHTSON(i) (2 * i + 2)
 
+typedef enum
+{
+  REMOVAL_POLICY_MIN = 0,
+  REMOVAL_POLICY_MAX = 1
+} REMOVAL_POLICY;
+
 typedef struct
 {
   float *cost;
