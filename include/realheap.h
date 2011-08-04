@@ -2,36 +2,33 @@
 #define _REALHEAP_H_
 
 #include "common.h"
-#include "gqueue.h"
 
-/* Auxiliary for RealHeap */
-#define HEAP_DAD(i) ((i - 1) / 2)
-#define HEAP_LEFTSON(i) (2 * i + 1)
+/* Auxiliary for real_heap */
+#define HEAP_DAD(i)      ((i - 1) / 2)
+#define HEAP_LEFTSON(i)  (2 * i + 1)
 #define HEAP_RIGHTSON(i) (2 * i + 2)
 
-
-typedef struct _realheap
+typedef struct
 {
   float *cost;
-  char *color;
-  int *pixel;
-  int *pos;
-  int last;
-  int n;
-  char removal_policy;          /* 0 is MINVALUE and 1 is MAXVALUE */
-} RealHeap;
+  char  *color;
+  int   *pixel;
+  int   *pos;
+  int    last;
+  int    n;
+  REMOVAL_POLICY removal_policy;
+} real_heap;
 
-
-void SetRemovalPolicyRealHeap (RealHeap * H, char policy);
-char IsFullRealHeap (RealHeap * H);
-char IsEmptyRealHeap (RealHeap * H);
-RealHeap *CreateRealHeap (int n, float *cost);
-void DestroyRealHeap (RealHeap ** H);
-char InsertRealHeap (RealHeap * H, int pixel);
-char RemoveRealHeap (RealHeap * H, int *pixel);
-void UpdateRealHeap (RealHeap * H, int p, float value);
-void GoUpRealHeap (RealHeap * H, int i);
-void GoDownRealHeap (RealHeap * H, int i);
-void ResetRealHeap (RealHeap * H);
+real_heap *real_heap_create             (int n, float *cost);
+void       real_heap_set_removal_policy (real_heap  * h, REMOVAL_POLICY policy);
+int        real_heap_is_full            (real_heap  * h);
+int        real_heap_is_empty           (real_heap  * h);
+void       real_heap_destroy            (real_heap ** h);
+int        real_heap_insert             (real_heap  * h, int  pixel);
+int        real_heap_remove             (real_heap  * h, int *pixel);
+void       real_heap_update             (real_heap  * h, int p, float value);
+void       real_heap_go_up              (real_heap  * h, int i);
+void       real_heap_go_down            (real_heap  * h, int i);
+void       real_heap_reset              (real_heap  * h);
 
 #endif

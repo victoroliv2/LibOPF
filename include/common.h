@@ -1,6 +1,7 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <malloc.h>
@@ -9,11 +10,17 @@
 #include <limits.h>
 #include <float.h>
 
+#define TRUE  1
+#define FALSE 0
+
 /* Error messages */
 
-#define MSG1  "Cannot allocate memory space"
-#define MSG2  "Cannot open file"
-#define MSG3  "Invalid option"
+#define LOG_OUT_OF_MEMORY    "Cannot allocate memory space"
+#define LOG_CANNOT_OPEN_FILE "Cannot open file"
+#define LOG_INVALID_OPT      "Invalid option"
+
+#define warning(msg) (fprintf(stderr, "Warning (%s:%d@%s): %s\n", #msg, __FILE__, __LINE__, __func__))
+#define error(msg)   (fprintf(stderr, "Error (%s:%d@%s): %s\n", #msg, __FILE__, __LINE__, __func__); assert(0))
 
 /* Common data types */
 typedef struct timeval timer;
@@ -24,9 +31,6 @@ typedef struct timeval timer;
 #define INTERIOR    0
 #define EXTERIOR    1
 #define BOTH        2
-#define WHITE       0
-#define GRAY        1
-#define BLACK       2
 #define NIL        -1
 #define INCREASING  1
 #define DECREASING  0
@@ -42,17 +46,11 @@ typedef struct timeval timer;
 #define MIN(x,y) (((x) < (y))?(x):(y))
 #endif
 
-int *AllocIntArray (int n);     /* It allocates 1D array of n integers */
-float *AllocFloatArray (int n); /* It allocates 1D array of n floats */
+#ifndef SWAP
+#define SWAP(x, y) do { const int temp##x##y = x; x = y; y = temp##x##y; } while (0)
+#endif
 
-void Error (char *msg, char *func);     /* It prints error message and exits
-                                           the program. */
-void Warning (char *msg, char *func);   /* It prints warning message and
-                                           leaves the routine. */
-
-inline void Change (int *a, int *b);    /* It changes content between a and b */
-int RandomInteger (int low, int high);  /* Generates a random number within [low,high].
-                                           http://www.ime.usp.br/~pf/algoritmos/aulas/random.html
-                                         */
+/* Generates a random number within [low,high] */
+int random_int (int low, int high);
 
 #endif

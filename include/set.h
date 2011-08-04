@@ -7,12 +7,12 @@ typedef struct _set
 {
   int elem;
   struct _set *next;
-} Set;
+} set;
 
-void InsertSet (Set ** S, int elem);
-int RemoveSet (Set ** S);
-int GetSetSize (Set * S);
-Set *CloneSet (Set * S);
-void DestroySet (Set ** S);
+void  set_insert   (set **s, int elem);
+int   set_remove   (set **s);
+int   set_get size (set  *s);
+set  *set_clone    (set  *s);
+void  set_destroy  (set **s);
 
 #endif
