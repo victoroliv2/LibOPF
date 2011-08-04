@@ -42,17 +42,17 @@ typedef struct timeval timer;
 #define MIN(x,y) (((x) < (y))?(x):(y))
 #endif
 
-int    *AllocIntArray(int n);   /* It allocates 1D array of n integers */
-float  *AllocFloatArray(int n); /* It allocates 1D array of n floats */
+int *AllocIntArray (int n);     /* It allocates 1D array of n integers */
+float *AllocFloatArray (int n); /* It allocates 1D array of n floats */
 
-void Error(char *msg,char *func); /* It prints error message and exits
-                                     the program. */
-void Warning(char *msg,char *func); /* It prints warning message and
-                                       leaves the routine. */
+void Error (char *msg, char *func);     /* It prints error message and exits
+                                           the program. */
+void Warning (char *msg, char *func);   /* It prints warning message and
+                                           leaves the routine. */
 
-inline void Change(int *a, int *b); /* It changes content between a and b */
-int RandomInteger (int low, int high);/* Generates a random number within [low,high].
-                                        http://www.ime.usp.br/~pf/algoritmos/aulas/random.html
-                                        */
+inline void Change (int *a, int *b);    /* It changes content between a and b */
+int RandomInteger (int low, int high);  /* Generates a random number within [low,high].
+                                           http://www.ime.usp.br/~pf/algoritmos/aulas/random.html
+                                         */
 
 #endif
