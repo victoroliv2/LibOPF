@@ -282,7 +282,7 @@ mst_prototypes (subgraph * sg)
 
 //Training function -----
 void
-supervised_classifying (subgraph * sg)
+supervised_training (subgraph * sg)
 {
   int p, q, i;
   float tmp, weight;
@@ -420,9 +420,9 @@ supervised_learning (subgraph ** sg_train, subgraph ** sg_eval)
       AccAnt = Acc;
       fflush (stdout);
       fprintf (stdout, "\nrunning iteration ... %d ", i);
-      opf_OPFTraining (*sg_train);
-      opf_OPFClassifying (*sg_train, *sg_eval);
-      Acc = opf_Accuracy (*sg_eval);
+      supervised_training (*sg_train);
+      supervised_training (*sg_train, *sg_eval);
+      Acc = subgraph_accuracy (*sg_eval);
       if (Acc > MaxAcc)
         {
           MaxAcc = Acc;
@@ -432,7 +432,7 @@ supervised_learning (subgraph ** sg_train, subgraph ** sg_eval)
         }
       swap_errors_by_non_prototypes (&(*sg_train), &(*sg_eval));
       fflush (stdout);
-      fprintf (stdout, "opf_Accuracy in the evaluation set: %.2f %%\n",
+      fprintf (stdout, "accuracy in the evaluation set: %.2f %%\n",
                Acc * 100);
       i++;
       delta = fabs (Acc - AccAnt);
@@ -455,9 +455,9 @@ supervised_agglomerative_learning (subgraph ** sg_train, subgraph ** sg_eval)
       fflush (stdout);
       fprintf (stdout, "\nrunning iteration ... %d ", i++);
       n = 0;
-      opf_OPFTraining (*sg_train);
-      opf_OPFClassifying (*sg_train, *sg_eval);
-      Acc = opf_Accuracy (*sg_eval);
+      supervised_training (*sg_train);
+      supervised_classifying (*sg_train, *sg_eval);
+      Acc = subgraph_accuracy (*sg_eval);
       fprintf (stdout, " %f", Acc * 100);
       move_misclassified_nodes (&(*sg_eval), &(*sg_train), &n);
       fprintf (stdout, "\nMisclassified nodes: %d", n);

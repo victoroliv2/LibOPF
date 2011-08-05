@@ -1,6 +1,6 @@
 // Compute accuracy
 float
-opf_Accuracy (subgraph * sg)
+subgraph_accuracy (subgraph * sg)
 {
   float Acc = 0.0f, **error_matrix = NULL, error = 0.0f;
   int i, *nclass = NULL, nlabels = 0;
@@ -53,18 +53,18 @@ opf_Accuracy (subgraph * sg)
 
 // Compute the confusion matrix
 int **
-opf_ConfusionMatrix (subgraph * sg)
+subgraph_confusion_matrix (subgraph * sg)
 {
-  int **opf_ConfusionMatrix = NULL, i;
+  int **confusion_matrix = NULL, i;
 
-  opf_ConfusionMatrix = (int **) calloc ((sg->nlabels + 1), sizeof (int *));
+  confusion_matrix = (int **) calloc ((sg->nlabels + 1), sizeof (int *));
   for (i = 1; i <= sg->nlabels; i++)
-    opf_ConfusionMatrix[i] = (int *) calloc ((sg->nlabels + 1), sizeof (int));
+    confusion_matrix[i] = (int *) calloc ((sg->nlabels + 1), sizeof (int));
 
   for (i = 0; i < sg->node_n; i++)
-    opf_ConfusionMatrix[sg->node[i].label_true][sg->node[i].label]++;
+    confusion_matrix[sg->node[i].label_true][sg->node[i].label]++;
 
-  return opf_ConfusionMatrix;
+  return confusion_matrix;
 }
 
 

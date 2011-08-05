@@ -137,7 +137,7 @@ subgraph_reset (subgraph * sg)
 
   for (i = 0; i < sg->nnodes; i++)
     sg->node[i].pred = NIL;
-  opf_DestroyArcs (sg);
+  subgraph_knn_destroy (sg);
 }
 
 //Merge two subgraphs

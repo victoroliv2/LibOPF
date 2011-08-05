@@ -1,2 +1,2 @@
-float      accuracy                  (subgraph * g);                                    /* compute accuracy                                                        */
-int      **confusionmatrix           (subgraph * sg);                                   /* compute the confusion matrix                                            */
+float      subgraph_accuracy                  (subgraph * g);                                    /* compute accuracy                                                        */
+int      **subgraph_confusion_matrix          (subgraph * sg);                                   /* compute the confusion matrix                                            */

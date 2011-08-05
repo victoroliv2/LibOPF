@@ -1,6 +1,6 @@
 // Create adjacent list in subgraph: a knn graph
 void
-opf_CreateArcs (subgraph * sg, int knn)
+subgraph_knn_create (subgraph * sg, int knn)
 {
   int i, j, l, k;
   float dist;
@@ -60,11 +60,10 @@ opf_CreateArcs (subgraph * sg, int knn)
     sg->df = 1.0;
 }
 
-// Create adjacent list in subgraph: a knn graph.
 // Returns an array with the maximum distances
 // for each k=1,2,...,kmax
 float *
-opf_CreateArcs2 (subgraph * sg, int kmax)
+subgraph_knn_max_distances_evaluate (subgraph * sg, int kmax)
 {
   int i, j, l, k;
   float dist;
@@ -133,7 +132,7 @@ opf_CreateArcs2 (subgraph * sg, int kmax)
 
 // Destroy Arcs
 void
-opf_DestroyArcs (subgraph * sg)
+subgraph_knn_destroy (subgraph * sg)
 {
   int i;
 
@@ -146,7 +145,7 @@ opf_DestroyArcs (subgraph * sg)
 
 // Normalized cut
 float
-opf_NormalizedCut (subgraph * sg)
+subgraph_normalized_cut (subgraph * sg)
 {
   int l, p, q;
   set *Saux;
@@ -193,9 +192,73 @@ opf_NormalizedCut (subgraph * sg)
   return (ncut);
 }
 
+// subgraph_pdf_evaluate computation
+void
+subgraph_pdf_evaluate (subgraph * sg)
+{
+  int i, nelems;
+  double dist;
+  float *value = AllocFloatArray (sg->node_n);
+  set *adj = NULL;
+
+  sg->K = (2.0 * (float) sg->df / 9.0);
+  sg->dens_min = FLT_MAX;
+  sg->dens_max = FLT_MIN;
+  for (i = 0; i < sg->node_n; i++)
+    {
+      adj = sg->node[i].adj;
+      value[i] = 0.0;
+      nelems = 1;
+      while (adj != NULL)
+        {
+          if (!use_precomputed_distance)
+            dist =
+              arc_weight (sg->node[i].feat, sg->node[adj->elem].feat,
+                             sg->nfeats);
+          else
+            dist =
+              distance_value[sg->node[i].position][sg->
+                                                      node[adj->
+                                                           elem].position];
+          value[i] += exp (-dist / sg->K);
+          adj = adj->next;
+          nelems++;
+        }
+
+      value[i] = (value[i] / (float) nelems);
+
+      if (value[i] < sg->dens_min)
+        sg->dens_min = value[i];
+      if (value[i] > sg->dens_max)
+        sg->dens_max = value[i];
+    }
+
+  //  printf("df=%f,K1=%f,K2=%f,dens_min=%f, dens_max=%f\n",sg->df,sg->K1,sg->K2,sg->dens_min,sg->dens_max);
+
+  if (sg->dens_min == sg->dens_max)
+    {
+      for (i = 0; i < sg->node_n; i++)
+        {
+          sg->node[i].dens = DENS_MAX;
+          sg->node[i].path_val = DENS_MAX - 1;
+        }
+    }
+  else
+    {
+      for (i = 0; i < sg->node_n; i++)
+        {
+          sg->node[i].dens =
+            ((float) (DENS_MAX - 1) * (value[i] - sg->dens_min) /
+             (float) (sg->dens_max - sg->dens_min)) + 1.0;
+          sg->node[i].path_val = sg->node[i].dens - 1;
+        }
+    }
+  free (value);
+}
+
 // OPFClustering computation only for sg->bestk neighbors
 void
-opf_OPFClusteringToKmax (subgraph * sg)
+subgraph_k_max_clustering (subgraph * sg)
 {
   set *adj_i, *adj_j;
   char insert_i;
@@ -298,73 +361,10 @@ opf_OPFClusteringToKmax (subgraph * sg)
   free (path_val);
 }
 
-// opf_PDF computation
-void
-opf_PDF (subgraph * sg)
-{
-  int i, nelems;
-  double dist;
-  float *value = AllocFloatArray (sg->node_n);
-  set *adj = NULL;
-
-  sg->K = (2.0 * (float) sg->df / 9.0);
-  sg->dens_min = FLT_MAX;
-  sg->dens_max = FLT_MIN;
-  for (i = 0; i < sg->node_n; i++)
-    {
-      adj = sg->node[i].adj;
-      value[i] = 0.0;
-      nelems = 1;
-      while (adj != NULL)
-        {
-          if (!use_precomputed_distance)
-            dist =
-              arc_weight (sg->node[i].feat, sg->node[adj->elem].feat,
-                             sg->nfeats);
-          else
-            dist =
-              distance_value[sg->node[i].position][sg->
-                                                      node[adj->
-                                                           elem].position];
-          value[i] += exp (-dist / sg->K);
-          adj = adj->next;
-          nelems++;
-        }
-
-      value[i] = (value[i] / (float) nelems);
-
-      if (value[i] < sg->dens_min)
-        sg->dens_min = value[i];
-      if (value[i] > sg->dens_max)
-        sg->dens_max = value[i];
-    }
-
-  //  printf("df=%f,K1=%f,K2=%f,dens_min=%f, dens_max=%f\n",sg->df,sg->K1,sg->K2,sg->dens_min,sg->dens_max);
-
-  if (sg->dens_min == sg->dens_max)
-    {
-      for (i = 0; i < sg->node_n; i++)
-        {
-          sg->node[i].dens = DENS_MAX;
-          sg->node[i].path_val = DENS_MAX - 1;
-        }
-    }
-  else
-    {
-      for (i = 0; i < sg->node_n; i++)
-        {
-          sg->node[i].dens =
-            ((float) (DENS_MAX - 1) * (value[i] - sg->dens_min) /
-             (float) (sg->dens_max - sg->dens_min)) + 1.0;
-          sg->node[i].path_val = sg->node[i].dens - 1;
-        }
-    }
-  free (value);
-}
 
 // PDF computation only for sg->bestk neighbors
 void
-opf_PDFtoKmax (subgraph * sg)
+subgraph_k_max_pdf (subgraph * sg)
 {
   int i, nelems;
   const int kmax = sg->bestk;
@@ -433,7 +433,7 @@ opf_PDFtoKmax (subgraph * sg)
 
 // Normalized cut computed only for sg->bestk neighbors
 float
-opf_NormalizedCutToKmax (subgraph * sg)
+subgraph_k_max_normalized_cut (subgraph * sg)
 {
   int l, p, q, k;
   const int kmax = sg->bestk;
@@ -486,12 +486,12 @@ opf_NormalizedCutToKmax (subgraph * sg)
 
 // Estimate the best k by minimum cut
 void
-opf_BestkMinCut (subgraph * sg, int kmin, int kmax)
+subgraph_best_k_min_cut (subgraph * sg, int kmin, int kmax)
 {
   int k, bestk = kmax;
   float mincut = FLT_MAX, nc;
 
-  float *maxdists = opf_CreateArcs2 (sg, kmax); // stores the maximum distances for every k=1,2,...,kmax
+  float *maxdists = subgraph_knn_max_distances_evaluate (sg, kmax); // stores the maximum distances for every k=1,2,...,kmax
 
   // Find the best k
   for (k = kmin; (k <= kmax) && (mincut != 0.0); k++)
@@ -499,11 +499,11 @@ opf_BestkMinCut (subgraph * sg, int kmin, int kmax)
       sg->df = maxdists[k - 1];
       sg->bestk = k;
 
-      opf_PDFtoKmax (sg);
+      subgraph_k_max_pdf (sg);
 
-      opf_OPFClusteringToKmax (sg);
+      subgraph_k_max_clustering (sg);
 
-      nc = opf_NormalizedCutToKmax (sg);
+      nc = subgraph_k_max_normalized_cut (sg);
 
       if (nc < mincut)
         {
@@ -512,12 +512,12 @@ opf_BestkMinCut (subgraph * sg, int kmin, int kmax)
         }
     }
   free (maxdists);
-  opf_DestroyArcs (sg);
+  subgraph_knn_destroy (sg);
 
   sg->bestk = bestk;
 
-  opf_CreateArcs (sg, sg->bestk);
-  opf_PDF (sg);
+  subgraph_knn_create (sg, sg->bestk);
+  subgraph_pdf_evaluate (sg);
 
   printf ("best k %d ", sg->bestk);
-}
+
