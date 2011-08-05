@@ -11,7 +11,7 @@ typedef struct _set
 
 void  set_insert   (set **s, int elem);
 int   set_remove   (set **s);
-int   set_get size (set  *s);
+int   set_get_size (set  *s);
 set  *set_clone    (set  *s);
 void  set_destroy  (set **s);
 

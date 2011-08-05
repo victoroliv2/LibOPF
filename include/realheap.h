@@ -10,6 +10,14 @@
 
 typedef enum
 {
+  COLOR_WHITE = 0,
+  COLOR_GRAY  = 1,
+  COLOR_BLACK = 2
+} COLOR;
+
+
+typedef enum
+{
   REMOVAL_POLICY_MIN = 0,
   REMOVAL_POLICY_MAX = 1
 } REMOVAL_POLICY;
@@ -17,7 +25,7 @@ typedef enum
 typedef struct
 {
   float *cost;
-  char  *color;
+  COLOR *color;
   int   *pixel;
   int   *pos;
   int    last;

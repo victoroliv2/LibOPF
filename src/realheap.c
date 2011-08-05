@@ -38,7 +38,7 @@ real_heap_go_up (real_heap * H, int i)
 
       while ((i > 0) && (H->cost[H->pixel[j]] > H->cost[H->pixel[i]]))
         {
-          Change (&H->pixel[j], &H->pixel[i]);
+          SWAP (&H->pixel[j], &H->pixel[i]);
           H->pos[H->pixel[i]] = i;
           H->pos[H->pixel[j]] = j;
           i = j;
@@ -50,7 +50,7 @@ real_heap_go_up (real_heap * H, int i)
 
       while ((i > 0) && (H->cost[H->pixel[j]] < H->cost[H->pixel[i]]))
         {
-          Change (&H->pixel[j], &H->pixel[i]);
+          SWAP (&H->pixel[j], &H->pixel[i]);
           H->pos[H->pixel[i]] = i;
           H->pos[H->pixel[j]] = j;
           i = j;
@@ -88,14 +88,14 @@ real_heap_go_down (real_heap * H, int i)
 
   if (j != i)
     {
-      Change (&H->pixel[j], &H->pixel[i]);
+      SWAP (&H->pixel[j], &H->pixel[i]);
       H->pos[H->pixel[i]] = i;
       H->pos[H->pixel[j]] = j;
       real_heap_go_down (H, j);
     }
 }
 
-char
+int
 real_heap_is_full (real_heap * H)
 {
   if (H->last == (H->n - 1))
@@ -104,10 +104,10 @@ real_heap_is_full (real_heap * H)
     return 0;
 }
 
-char
+int
 real_heap_is_empty (real_heap * H)
 {
-  if (H->last == -1)
+  if (H->last == NIL)
     return 1;
   else
     return 0;
@@ -131,18 +131,18 @@ create_real_heap (int n, float *cost)
     {
       H->n = n;
       H->cost = cost;
-      H->color = (char *) malloc (sizeof (char) * n);
+      H->color = (COLOR *) malloc (sizeof (COLOR) * n);
       H->pixel = (int *) malloc (sizeof (int) * n);
-      H->pos = (int *) malloc (sizeof (int) * n);
-      H->last = -1;
+      H->pos   = (int *) malloc (sizeof (int) * n);
+      H->last = NIL;
       H->removal_policy = REMOVAL_POLICY_MIN;
       if (H->color == NULL || H->pos == NULL || H->pixel == NULL)
         error (LOG_OUT_OF_MEMORY);
       for (i = 0; i < H->n; i++)
         {
           H->color[i] = COLOR_WHITE;
-          H->pos[i] = -1;
-          H->pixel[i] = -1;
+          H->pos[i]   = NIL;
+          H->pixel[i] = NIL;
         }
     }
   else
@@ -168,14 +168,14 @@ real_heap_destroy (real_heap ** H)
     }
 }
 
-char
+int
 real_heap_insert (real_heap * H, int pixel)
 {
   if (!real_heap_is_full (H))
     {
       H->last++;
       H->pixel[H->last] = pixel;
-      H->color[pixel] = GRAY;
+      H->color[pixel] = COLOR_GRAY;
       H->pos[pixel] = H->last;
       real_heap_go_up (H, H->last);
       return 1;
@@ -184,17 +184,17 @@ real_heap_insert (real_heap * H, int pixel)
     return 0;
 }
 
-char
+int
 real_heap_remove (real_heap * H, int *pixel)
 {
   if (!real_heap_is_empty (H))
     {
       *pixel = H->pixel[0];
-      H->pos[*pixel] = -1;
+      H->pos[*pixel] = NIL;
       H->color[*pixel] = COLOR_BLACK;
       H->pixel[0] = H->pixel[H->last];
       H->pos[H->pixel[0]] = 0;
-      H->pixel[H->last] = -1;
+      H->pixel[H->last] = NIL;
       H->last--;
       real_heap_go_down (H, 0);
       return 1;
@@ -228,8 +228,8 @@ real_heap_reset (real_heap * H)
   for (i = 0; i < H->n; i++)
     {
       H->color[i] = COLOR_WHITE;
-      H->pos[i] = -1;
-      H->pixel[i] = -1;
+      H->pos[i] = NIL;
+      H->pixel[i] = NIL;
     }
-  H->last = -1;
+  H->last = NIL;
 }
