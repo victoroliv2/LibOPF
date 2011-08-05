@@ -1235,49 +1235,6 @@ opf_PDF (Subgraph * sg)
   free (value);
 }
 
-// Eliminate maxima in the graph with pdf below H
-void
-opf_ElimMaxBelowH (Subgraph * sg, float H)
-{
-  int i;
-
-  if (H > 0.0)
-    {
-      for (i = 0; i < sg->nnodes; i++)
-        sg->node[i].pathval = MAX (sg->node[i].dens - H, 0);
-    }
-}
-
-//Eliminate maxima in the graph with area below A
-void
-opf_ElimMaxBelowArea (Subgraph * sg, int A)
-{
-  int i, *area;
-
-  area = SgAreaOpen (sg, A);
-  for (i = 0; i < sg->nnodes; i++)
-    {
-      sg->node[i].pathval = MAX (area[i] - 1, 0);
-    }
-
-  free (area);
-}
-
-// Eliminate maxima in the graph with volume below V
-void
-opf_ElimMaxBelowVolume (Subgraph * sg, int V)
-{
-  int i, *volume = NULL;
-
-  volume = SgVolumeOpen (sg, V);
-  for (i = 0; i < sg->nnodes; i++)
-    {
-      sg->node[i].pathval = MAX (volume[i] - 1, 0);
-    }
-
-  free (volume);
-}
-
 /* -------- Auxiliary functions to optimize BestkMinCut -------- */
 
 // Create adjacent list in subgraph: a knn graph.

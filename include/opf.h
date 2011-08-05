@@ -41,9 +41,6 @@ void       bestkmincut               (subgraph * sg, int kmin, int kmax);
 void       createarcs                (subgraph * sg, int knn);                          /* it creates arcs for each node (adjacency relation)                      */
 void       destroyarcs               (subgraph * sg);                                   /* it destroys the adjacency relation                                      */
 void       pdf                       (subgraph * sg);                                   /* it computes the pdf for each node                                       */
-void       elimmaxbelowvolume        (subgraph * sg, int v);                            /* eliminate maxima in the graph with volume below v                       */
-void       elimmaxbelowarea          (subgraph * sg, int a);                            /* eliminate maxima in the graph with area below a                         */
-void       elimmaxbelowh             (subgraph * sg, float h);                          /* eliminate maxima in the graph with pdf below h                          */
 
 /* -------- auxiliary functions used to optimize bestkmincut -------- */
 float     *createarcs2               (subgraph * sg, int kmax);                         /* creates arcs for each node (adjacency relation) and returns
