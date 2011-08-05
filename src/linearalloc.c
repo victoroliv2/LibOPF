@@ -1,5 +1,5 @@
-#include <stdlib.h>
-#include <stdint.h>
+#include "common.h"
+#include "linearalloc.h"
 
 void
 linear_buffer_create (linear_buffer **buf, int elem_n, size_t elem_size, size_t align)

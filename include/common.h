@@ -12,6 +12,7 @@
 
 #define TRUE  1
 #define FALSE 0
+#define NIL  -1
 
 /* Error messages */
 
@@ -22,19 +23,8 @@
 #define warning(msg) (fprintf(stderr, "Warning (%s:%d@%s): %s\n", #msg, __FILE__, __LINE__, __func__))
 #define error(msg)   (fprintf(stderr, "Error (%s:%d@%s): %s\n", #msg, __FILE__, __LINE__, __func__); assert(0))
 
-/* Common data types */
-typedef struct timeval timer;
-
-/* Common definitions */
-
-#define PI          3.1415926536
-#define INTERIOR    0
-#define EXTERIOR    1
-#define BOTH        2
-#define NIL        -1
-#define INCREASING  1
-#define DECREASING  0
-#define Epsilon     1E-05
+#define ARCW_MAX 100000.0
+#define DENS_MAX 1000.0
 
 /* Common operations */
 

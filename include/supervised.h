@@ -1,5 +1,5 @@
-#ifndef _OPF_SUPERVISED_H_
-#define _OPF_SUPERVISED_H_
+#ifndef _SUPERVISED_H_
+#define _SUPERVISED_H_
 
 #include <malloc.h>
 #include <stdio.h>
@@ -19,9 +19,6 @@
 #include "sgctree.h"
 #include "realheap.h"
 #include "metrics.h"
-
-#define ARCW_MAX 100000.0
-#define DENS_MAX 1000.0
 
 void       swap_errors_by_non_prototypes (subgraph ** sg_train, subgraph ** sg_eval);         /* replace errors from evaluating set by non prototypes from training set  */
 void       move_irrelevant_nodes         (subgraph ** sgtrain, subgraph ** sgeval);          /* move irrelevant nodes from source graph (src) to destiny graph (dst)    */

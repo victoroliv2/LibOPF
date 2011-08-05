@@ -16,7 +16,7 @@
   This program is a collection of functions to manage the Optimum-Path Forest (OPF)
   classifier.*/
 
-#include "opf_supervised.h"
+#include "supervised.h"
 
 //Replace errors from evaluating set by non prototypes from training set
 void
