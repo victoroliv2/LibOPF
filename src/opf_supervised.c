@@ -263,7 +263,7 @@ mst_prototypes (subgraph * sg)
                                      sg->nfeats);
                   else
                     weight =
-                      opf_DistanceValue[sg->node[p].position][sg->
+                      distance_value[sg->node[p].position][sg->
                                                               node
                                                               [q].position];
                   if (weight < path_val[q])
@@ -334,7 +334,7 @@ supervised_classifying (subgraph * sg)
                                      sg->nfeats);
                   else
                     weight =
-                      opf_DistanceValue[sg->node[p].position][sg->
+                      distance_value[sg->node[p].position][sg->
                                                               node
                                                               [q].position];
                   tmp = MAX (path_val[p], weight);
@@ -371,7 +371,7 @@ supervised_classifying (subgraph * sg_train, subgraph * sg)
           arc_weight (sg_train->node[k].feat, sg->node[i].feat, sg->nfeats);
       else
         weight =
-          opf_DistanceValue[sg_train->node[k].position][sg->node[i].position];
+          distance_value[sg_train->node[k].position][sg->node[i].position];
 
       minCost = MAX (sg_train->node[k].path_val, weight);
       label = sg_train->node[k].label;
@@ -389,7 +389,7 @@ supervised_classifying (subgraph * sg_train, subgraph * sg)
                              sg->nfeats);
           else
             weight =
-              opf_DistanceValue[sg_train->node[l].position][sg->
+              distance_value[sg_train->node[l].position][sg->
                                                            node[i].position];
           tmp = MAX (sg_train->node[l].path_val, weight);
           if (tmp < minCost)

@@ -1,8 +1,10 @@
+
+
 //Training function: it computes unsupervised training for the
 //pre-computed best k.
 
 void
-opf_OPFClustering (subgraph * sg)
+unsupervised_clustering (subgraph * sg)
 {
   set *adj_i, *adj_j;
   char insert_i;
@@ -97,7 +99,7 @@ opf_OPFClustering (subgraph * sg)
 // the OPF-clustering labels from sg_train
 
 void
-opf_OPFKNNClassify (subgraph * sg_train, subgraph * sg)
+unsupervised_clustering (subgraph * sg_train, subgraph * sg)
 {
   int i, j, k;
   float weight;
@@ -113,7 +115,7 @@ opf_OPFKNNClassify (subgraph * sg_train, subgraph * sg)
                              sg->nfeats);
           else
             weight =
-              opf_DistanceValue[sg_train->node[k].position][sg->
+              distance_value[sg_train->node[k].position][sg->
                                                            node[i].position];
           if (weight <= sg_train->node[k].radius)
             {
