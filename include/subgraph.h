@@ -62,9 +62,15 @@ typedef struct
                                   */
 } subgraph;
 
-subgraph *subgraph_create  (int node_n);                     /* allocates nodes without features       */
-void      subgraph_destroy (subgraph ** sg);                 /* deallocates memory for subgraph        */
-void      subgraph_reset   (subgraph * sg);                  /* resets subgraph fields (pred and arcs) */
-subgraph *subgraph_copy    (subgraph * g);                   /* copy subgraph (does not copy arcs)     */
-subgraph *subgraph_merge   (subgraph * sg1, subgraph * sg2); /* merge two subgraphs                    */
+subgraph * subgraph_create  (int node_n);                     /* allocates nodes without features        */
+void       subgraph_destroy (subgraph ** sg);                 /* deallocates memory for subgraph         */
+void       subgraph_reset   (subgraph * sg);                  /* resets subgraph fields (pred and arcs)  */
+subgraph * subgraph_copy    (subgraph * g);                   /* copy subgraph (does not copy arcs)      */
+subgraph * subgraph_merge   (subgraph * sg1, subgraph * sg2); /* merge two subgraphs                     */
+subgraph **subgraph_k_fold  (subgraph * sg, int k);           /* it creates k folds for cross validation */
+void       subgraph_split   (subgraph * sg, subgraph ** sg1,
+                             subgraph ** sg2, float perc1); /* split subgraph into two parts such that
+                                                             * the size of the  first part is given by
+                                                             * a percentual of samples.                  */
+void       subgraph_normalize_features (subgraph * sg);     /* normalize features                        */
 #endif /* _SUBGRAPH_H_ */

@@ -54,7 +54,7 @@ static  float d_eucl (float *f1, float *f2, int n)
 /* log-euclidian */
 static  float d_eucl_log (float *f1, float *f2, int n)
 {
-  return (((float) opf_MAXARCW * log (d_eucl (f1, f2, n) + 1)));
+  return (((float) ARCW_MAX * log (d_eucl (f1, f2, n) + 1)));
 }
 
 /* gaussian */

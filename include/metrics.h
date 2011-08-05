@@ -18,7 +18,7 @@ typedef enum
 
 #ifdef __METRICS_MAIN__
 arc_weight_function arc_weight = NULL;
-int use_precomputed_distante = FALSE;
+int use_precomputed_distance = FALSE;
 float **distance_value = NULL;
 #else
 extern arc_weight_function arc_weight;

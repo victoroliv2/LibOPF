@@ -21,14 +21,14 @@
 
 /*----------- Constructor and destructor ------------------------*/
 // Allocate nodes without features
-Subgraph *
-CreateSubgraph (int nnodes)
+subgraph *
+subgraph_create (int nnodes)
 {
-  Subgraph *sg = (Subgraph *) calloc (1, sizeof (Subgraph));
+  subgraph *sg = (subgraph *) calloc (1, sizeof (subgraph));
   int i;
 
   sg->nnodes = nnodes;
-  sg->node = (SNode *) calloc (nnodes, sizeof (SNode));
+  sg->node = (snode *) calloc (nnodes, sizeof (snode));
   sg->ordered_list_of_nodes = (int *) calloc (nnodes, sizeof (int));
 
   if (sg->node == NULL)
@@ -45,7 +45,7 @@ CreateSubgraph (int nnodes)
 
 // Deallocate memory for subgraph
 void
-DestroySubgraph (Subgraph ** sg)
+subgraph_destroy (subgraph ** sg)
 {
   int i;
 
@@ -66,27 +66,27 @@ DestroySubgraph (Subgraph ** sg)
 }
 
 // Copy subgraph (does not copy Arcs)
-Subgraph *
-CopySubgraph (Subgraph * g)
+subgraph *
+subgraph_copy (subgraph * g)
 {
-  Subgraph *clone = NULL;
+  subgraph *clone = NULL;
   int i;
 
   if (g != NULL)
     {
-      clone = CreateSubgraph (g->nnodes);
+      clone = subgraph_create (g->nnodes);
 
       clone->bestk = g->bestk;
       clone->df = g->df;
       clone->nlabels = g->nlabels;
       clone->nfeats = g->nfeats;
-      clone->mindens = g->mindens;
-      clone->maxdens = g->maxdens;
+      clone->dens_min = g->dens_min;
+      clone->dens_max = g->dens_max;
       clone->K = g->K;
 
       for (i = 0; i < g->nnodes; i++)
         {
-          CopySNode (&clone->node[i], &g->node[i], g->nfeats);
+          snode_copy (&clone->node[i], &g->node[i], g->nfeats);
           clone->ordered_list_of_nodes[i] = g->ordered_list_of_nodes[i];
         }
 
@@ -98,16 +98,16 @@ CopySubgraph (Subgraph * g)
 
 //Copy nodes
 void
-CopySNode (SNode * dest, SNode * src, int nfeats)
+snode_copy (snode * dest, snode * src, int nfeats)
 {
   dest->feat = AllocFloatArray (nfeats);
   memcpy (dest->feat, src->feat, nfeats * sizeof (float));
-  dest->pathval = src->pathval;
+  dest->path_val\ = src->path_val\;
   dest->dens = src->dens;
   dest->label = src->label;
   dest->root = src->root;
   dest->pred = src->pred;
-  dest->truelabel = src->truelabel;
+  dest->label_true = src->label_true;
   dest->position = src->position;
   dest->status = src->status;
   dest->relevant = src->relevant;
@@ -120,17 +120,18 @@ CopySNode (SNode * dest, SNode * src, int nfeats)
 
 //Swap nodes
 void
-SwapSNode (SNode * a, SNode * b)
+snode_swap (snode * a, snode * b)
 {
-  SNode tmp;
+  snode tmp;
 
   tmp = *a;
   *a = *b;
   *b = tmp;
 }
 
+//Resets subgraph fields (pred and arcs)
 void
-opf_ResetSubgraph (Subgraph * sg)
+subgraph_reset (subgraph * sg)
 {
   int i;
 
@@ -140,12 +141,12 @@ opf_ResetSubgraph (Subgraph * sg)
 }
 
 //Merge two subgraphs
-Subgraph *
-opf_MergeSubgraph (Subgraph * sg1, Subgraph * sg2)
+subgraph *
+subgraph_merge (subgraph * sg1, subgraph * sg2)
 {
   assert (sg1->nfeats == sg2->nfeats);
 
-  Subgraph *out = CreateSubgraph (sg1->nnodes + sg2->nnodes);
+  subgraph *out = subgraph_create (sg1->nnodes + sg2->nnodes);
   int i = 0, j;
 
   if (sg1->nlabels > sg2->nlabels)
@@ -155,12 +156,237 @@ opf_MergeSubgraph (Subgraph * sg1, Subgraph * sg2)
   out->nfeats = sg1->nfeats;
 
   for (i = 0; i < sg1->nnodes; i++)
-    CopySNode (&out->node[i], &sg1->node[i], out->nfeats);
+    snode_copy (&out->node[i], &sg1->node[i], out->nfeats);
   for (j = 0; j < sg2->nnodes; j++)
     {
-      CopySNode (&out->node[i], &sg2->node[j], out->nfeats);
+      snode_copy (&out->node[i], &sg2->node[j], out->nfeats);
       i++;
     }
 
   return out;
 }
+
+
+//It creates k folds for cross validation
+subgraph **
+subgraph_k_fold (subgraph * sg, int k)
+{
+  subgraph **out = (subgraph **) malloc (k * sizeof (subgraph *));
+  int totelems, foldsize = 0, i, *label =
+    (int *) calloc ((sg->nlabels + 1), sizeof (int));
+  int *nelems =
+    (int *) calloc ((sg->nlabels + 1), sizeof (int)), j, z, w, m, n;
+  int *nelems_aux = (int *) calloc ((sg->nlabels + 1), sizeof (int)), *resto =
+    (int *) calloc ((sg->nlabels + 1), sizeof (int));
+
+  for (i = 0; i < sg->nnodes; i++)
+    {
+      sg->node[i].status = 0;
+      label[sg->node[i].label_true]++;
+    }
+
+  for (i = 0; i < sg->nnodes; i++)
+    nelems[sg->node[i].label_true] =
+      MAX ((int) ((1 / (float) k) * label[sg->node[i].label_true]), 1);
+
+  for (i = 1; i <= sg->nlabels; i++)
+    {
+      foldsize += nelems[i];
+      nelems_aux[i] = nelems[i];
+      resto[i] = label[i] - k * nelems_aux[i];
+    }
+
+  for (i = 0; i < k - 1; i++)
+    {
+      out[i] = subgraph_create (foldsize);
+      out[i]->nfeats = sg->nfeats;
+      out[i]->nlabels = sg->nlabels;
+      for (j = 0; j < foldsize; j++)
+        out[i]->node[j].feat = (float *) malloc (sg->nfeats * sizeof (float));
+    }
+
+  totelems = 0;
+  for (j = 1; j <= sg->nlabels; j++)
+    totelems += resto[j];
+
+  out[i] = subgraph_create (foldsize + totelems);
+  out[i]->nfeats = sg->nfeats;
+  out[i]->nlabels = sg->nlabels;
+
+  for (j = 0; j < foldsize + totelems; j++)
+    out[i]->node[j].feat = (float *) malloc (sg->nfeats * sizeof (float));
+
+  for (i = 0; i < k; i++)
+    {
+      totelems = 0;
+      if (i == k - 1)
+        {
+          for (w = 1; w <= sg->nlabels; w++)
+            {
+              nelems_aux[w] += resto[w];
+              totelems += nelems_aux[w];
+            }
+        }
+      else
+        {
+          for (w = 1; w <= sg->nlabels; w++)
+            totelems += nelems_aux[w];
+        }
+
+      for (w = 1; w <= sg->nlabels; w++)
+        nelems[w] = nelems_aux[w];
+
+
+      z = 0;
+      m = 0;
+      while (totelems > 0)
+        {
+          if (i == k - 1)
+            {
+              for (w = m; w < sg->nnodes; w++)
+                {
+                  if (sg->node[w].status != NIL)
+                    {
+                      j = w;
+                      m = w + 1;
+                      break;
+                    }
+                }
+
+            }
+          else
+            j = RandomInteger (0, sg->nnodes - 1);
+          if (sg->node[j].status != NIL)
+            {
+              if (nelems[sg->node[j].label_true] > 0)
+                {
+                  out[i]->node[z].position = sg->node[j].position;
+                  for (n = 0; n < sg->nfeats; n++)
+                    out[i]->node[z].feat[n] = sg->node[j].feat[n];
+                  out[i]->node[z].label_true = sg->node[j].label_true;
+                  nelems[sg->node[j].label_true] =
+                    nelems[sg->node[j].label_true] - 1;
+                  sg->node[j].status = NIL;
+                  totelems--;
+                  z++;
+                }
+            }
+        }
+    }
+
+  free (label);
+  free (nelems);
+  free (nelems_aux);
+  free (resto);
+
+  return out;
+}
+
+// Split subgraph into two parts such that the size of the first part
+// is given by a percentual of samples.
+void
+subgraph_split (subgraph * sg, subgraph ** sg1, subgraph ** sg2,
+                   float perc1)
+{
+  int *label = AllocIntArray (sg->nlabels + 1), i, j, i1, i2;
+  int *nelems = AllocIntArray (sg->nlabels + 1), totelems;
+  srandom ((int) time (NULL));
+
+  for (i = 0; i < sg->nnodes; i++)
+    {
+      sg->node[i].status = 0;
+      label[sg->node[i].label_true]++;
+    }
+
+  for (i = 0; i < sg->nnodes; i++)
+    {
+      nelems[sg->node[i].label_true] =
+        MAX ((int) (perc1 * label[sg->node[i].label_true]), 1);
+    }
+
+  free (label);
+
+  totelems = 0;
+  for (j = 1; j <= sg->nlabels; j++)
+    totelems += nelems[j];
+
+  *sg1 = subgraph_create (totelems);
+  *sg2 = subgraph_create (sg->nnodes - totelems);
+  (*sg1)->nfeats = sg->nfeats;
+  (*sg2)->nfeats = sg->nfeats;
+
+  for (i1 = 0; i1 < (*sg1)->nnodes; i1++)
+    (*sg1)->node[i1].feat = AllocFloatArray ((*sg1)->nfeats);
+  for (i2 = 0; i2 < (*sg2)->nnodes; i2++)
+    (*sg2)->node[i2].feat = AllocFloatArray ((*sg2)->nfeats);
+
+  (*sg1)->nlabels = sg->nlabels;
+  (*sg2)->nlabels = sg->nlabels;
+
+  i1 = 0;
+  while (totelems > 0)
+    {
+      i = RandomInteger (0, sg->nnodes - 1);
+      if (sg->node[i].status != NIL)
+        {
+          if (nelems[sg->node[i].label_true] > 0)        // copy node to sg1
+            {
+              (*sg1)->node[i1].position = sg->node[i].position;
+              for (j = 0; j < (*sg1)->nfeats; j++)
+                (*sg1)->node[i1].feat[j] = sg->node[i].feat[j];
+              (*sg1)->node[i1].label_true = sg->node[i].label_true;
+              i1++;
+              nelems[sg->node[i].label_true] =
+                nelems[sg->node[i].label_true] - 1;
+              sg->node[i].status = NIL;
+              totelems--;
+            }
+        }
+    }
+
+  i2 = 0;
+  for (i = 0; i < sg->nnodes; i++)
+    {
+      if (sg->node[i].status != NIL)
+        {
+          (*sg2)->node[i2].position = sg->node[i].position;
+          for (j = 0; j < (*sg2)->nfeats; j++)
+            (*sg2)->node[i2].feat[j] = sg->node[i].feat[j];
+          (*sg2)->node[i2].label_true = sg->node[i].label_true;
+          i2++;
+        }
+    }
+
+  free (nelems);
+}
+
+//normalize features
+void
+subgraph_normalize_features (subgraph * sg)
+{
+  float *mean = (float *) calloc (sg->nfeats, sizeof (float)), *std =
+    (float *) calloc (sg->nfeats, sizeof (int));
+  int i, j;
+
+  for (i = 0; i < sg->nfeats; i++)
+    {
+      for (j = 0; j < sg->nnodes; j++)
+        mean[i] += sg->node[j].feat[i] / sg->nnodes;
+      for (j = 0; j < sg->nnodes; j++)
+        std[i] += pow (sg->node[j].feat[i] - mean[i], 2) / sg->nnodes;
+      std[i] = sqrt (std[i]);
+      if (std[i] == 0)
+        std[i] = 1.0;
+    }
+
+  for (i = 0; i < sg->nfeats; i++)
+    {
+      for (j = 0; j < sg->nnodes; j++)
+        sg->node[j].feat[i] = (sg->node[j].feat[i] - mean[i]) / std[i];
+    }
+
+  free (mean);
+  free (std);
+}
+
+
