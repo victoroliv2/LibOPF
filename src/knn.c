@@ -24,7 +24,7 @@ subgraph_knn_create (subgraph * sg, int knn)
               if (!use_precomputed_distance)
                 d[knn] =
                   arc_weight (sg->node[i].feat, sg->node[j].feat,
-                                 sg->nfeats);
+                                 sg->feat_n);
               else
                 d[knn] =
                   distance_value[sg->node[i].position][sg->
@@ -87,7 +87,7 @@ subgraph_knn_max_distances_evaluate (subgraph * sg, int kmax)
               if (!use_precomputed_distance)
                 d[kmax] =
                   arc_weight (sg->node[i].feat, sg->node[j].feat,
-                                 sg->nfeats);
+                                 sg->feat_n);
               else
                 d[kmax] =
                   distance_value[sg->node[i].position][sg->
@@ -245,7 +245,7 @@ subgraph_k_max_clustering (subgraph * sg)
         }
     }
 
-  sg->nlabels = l;
+  sg->label_n = l;
 
   real_heap_destroy (&Q);
   free (path_val);
@@ -280,7 +280,7 @@ subgraph_k_max_pdf (subgraph * sg)
           if (!use_precomputed_distance)
             dist =
               arc_weight (sg->node[i].feat, sg->node[adj->elem].feat,
-                             sg->nfeats);
+                             sg->feat_n);
           else
             dist =
               distance_value[sg->node[i].position][sg->
@@ -332,8 +332,8 @@ subgraph_k_max_normalized_cut (subgraph * sg)
   float *acumEC;                //acumulate weights between the class and a distinct one
 
   ncut = 0.0;
-  acumIC = AllocFloatArray (sg->nlabels);
-  acumEC = AllocFloatArray (sg->nlabels);
+  acumIC = AllocFloatArray (sg->label_n);
+  acumEC = AllocFloatArray (sg->label_n);
 
   for (p = 0; p < sg->node_n; p++)
     {
@@ -345,7 +345,7 @@ subgraph_k_max_normalized_cut (subgraph * sg)
           q = Saux->elem;
           if (!use_precomputed_distance)
             dist =
-              arc_weight (sg->node[p].feat, sg->node[q].feat, sg->nfeats);
+              arc_weight (sg->node[p].feat, sg->node[q].feat, sg->feat_n);
           else
             dist =
               distance_value[sg->node[p].position][sg->node[q].position];
@@ -363,7 +363,7 @@ subgraph_k_max_normalized_cut (subgraph * sg)
         }
     }
 
-  for (l = 0; l < sg->nlabels; l++)
+  for (l = 0; l < sg->label_n; l++)
     {
       if (acumIC[l] + acumEC[l] > 0.0)
         ncut += (float) acumEC[l] / (acumIC[l] + acumEC[l]);

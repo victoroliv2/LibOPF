@@ -25,7 +25,7 @@ int use_precomputed_distance = FALSE;
 float **distance_value = NULL;
 #else
 extern arc_weight_function arc_weight;
-extern int use_precomputed_distante;
+extern int use_precomputed_distance;
 extern float **distance_value;
 #endif
 

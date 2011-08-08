@@ -1,4 +1,5 @@
 #include "common.h"
+#include "metrics.h"
 #include "measures.h"
 
 // Compute accuracy
@@ -6,13 +7,13 @@ float
 subgraph_accuracy (subgraph * sg)
 {
   float Acc = 0.0f, **error_matrix = NULL, error = 0.0f;
-  int i, *nclass = NULL, nlabels = 0;
+  int i, *nclass = NULL, label_n = 0;
 
-  error_matrix = (float **) calloc (sg->nlabels + 1, sizeof (float *));
-  for (i = 0; i <= sg->nlabels; i++)
+  error_matrix = (float **) calloc (sg->label_n + 1, sizeof (float *));
+  for (i = 0; i <= sg->label_n; i++)
     error_matrix[i] = (float *) calloc (2, sizeof (float));
 
-  nclass = AllocIntArray (sg->nlabels + 1);
+  nclass = AllocIntArray (sg->label_n + 1);
 
   for (i = 0; i < sg->node_n; i++)
     {
@@ -28,25 +29,25 @@ subgraph_accuracy (subgraph * sg)
         }
     }
 
-  for (i = 1; i <= sg->nlabels; i++)
+  for (i = 1; i <= sg->label_n; i++)
     {
       if (nclass[i] != 0)
         {
           error_matrix[i][1] /= (float) nclass[i];
           error_matrix[i][0] /= (float) (sg->node_n - nclass[i]);
-          nlabels++;
+          label_n++;
         }
     }
 
-  for (i = 1; i <= sg->nlabels; i++)
+  for (i = 1; i <= sg->label_n; i++)
     {
       if (nclass[i] != 0)
         error += (error_matrix[i][0] + error_matrix[i][1]);
     }
 
-  Acc = 1.0 - (error / (2.0 * nlabels));
+  Acc = 1.0 - (error / (2.0 * label_n));
 
-  for (i = 0; i <= sg->nlabels; i++)
+  for (i = 0; i <= sg->label_n; i++)
     free (error_matrix[i]);
   free (error_matrix);
   free (nclass);
@@ -60,9 +61,9 @@ subgraph_confusion_matrix (subgraph * sg)
 {
   int **confusion_matrix = NULL, i;
 
-  confusion_matrix = (int **) calloc ((sg->nlabels + 1), sizeof (int *));
-  for (i = 1; i <= sg->nlabels; i++)
-    confusion_matrix[i] = (int *) calloc ((sg->nlabels + 1), sizeof (int));
+  confusion_matrix = (int **) calloc ((sg->label_n + 1), sizeof (int *));
+  for (i = 1; i <= sg->label_n; i++)
+    confusion_matrix[i] = (int *) calloc ((sg->label_n + 1), sizeof (int));
 
   for (i = 0; i < sg->node_n; i++)
     confusion_matrix[sg->node[i].label_true][sg->node[i].label]++;
@@ -81,8 +82,8 @@ subgraph_normalized_cut (subgraph * sg)
   float *acumEC;                //acumulate weights between the class and a distinct one
 
   ncut = 0.0;
-  acumIC = AllocFloatArray (sg->nlabels);
-  acumEC = AllocFloatArray (sg->nlabels);
+  acumIC = AllocFloatArray (sg->label_n);
+  acumEC = AllocFloatArray (sg->label_n);
 
   for (p = 0; p < sg->node_n; p++)
     {
@@ -91,7 +92,7 @@ subgraph_normalized_cut (subgraph * sg)
           q = Saux->elem;
           if (!use_precomputed_distance)
             dist =
-              arc_weight (sg->node[p].feat, sg->node[q].feat, sg->nfeats);
+              arc_weight (sg->node[p].feat, sg->node[q].feat, sg->feat_n);
           else
             dist =
               distance_value[sg->node[p].position][sg->node[q].position];
@@ -109,7 +110,7 @@ subgraph_normalized_cut (subgraph * sg)
         }
     }
 
-  for (l = 0; l < sg->nlabels; l++)
+  for (l = 0; l < sg->label_n; l++)
     {
       if (acumIC[l] + acumEC[l] > 0.0)
         ncut += (float) acumEC[l] / (acumIC[l] + acumEC[l]);

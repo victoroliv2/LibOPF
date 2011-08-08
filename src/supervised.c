@@ -87,21 +87,21 @@ remove_irrelevant_nodes (subgraph ** sg)
   if (num_of_irrelevants > 0)
     {
       newsg = subgraph_create ((*sg)->node_n - num_of_irrelevants);
-      newsg->nfeats = (*sg)->nfeats;
+      newsg->feat_n = (*sg)->feat_n;
 //    for (i=0; i < newsg->node_n; i++)
-//      newsg->node[i].feat = AllocFloatArray(newsg->nfeats);
+//      newsg->node[i].feat = AllocFloatArray(newsg->feat_n);
 
       k = 0;
-      newsg->nlabels = (*sg)->nlabels;
+      newsg->label_n = (*sg)->label_n;
       for (i = 0; i < (*sg)->node_n; i++)
         {
           if ((*sg)->node[i].relevant)  // relevant node
             {
-              snode_copy (&(newsg->node[k]), &((*sg)->node[i]), newsg->nfeats);
+              snode_copy (&(newsg->node[k]), &((*sg)->node[i]), newsg->feat_n);
               k++;
             }
         }
-      newsg->nlabels = (*sg)->nlabels;
+      newsg->label_n = (*sg)->label_n;
       subgraph_destroy (sg);
       *sg = newsg;
     }
@@ -125,19 +125,19 @@ move_irrelevant_nodes (subgraph ** src, subgraph ** dst)
       newsrc = subgraph_create ((*src)->node_n - num_of_irrelevants);
       newdst = subgraph_create ((*dst)->node_n + num_of_irrelevants);
 
-      newsrc->nfeats = (*src)->nfeats;
-      newdst->nfeats = (*dst)->nfeats;
-      newsrc->nlabels = (*src)->nlabels;
-      newdst->nlabels = (*dst)->nlabels;
+      newsrc->feat_n = (*src)->feat_n;
+      newdst->feat_n = (*dst)->feat_n;
+      newsrc->label_n = (*src)->label_n;
+      newdst->label_n = (*dst)->label_n;
 
 //    for (i=0; i < newsrc->node_n; i++)
-//      newsrc->node[i].feat = AllocFloatArray(newsrc->nfeats);
+//      newsrc->node[i].feat = AllocFloatArray(newsrc->feat_n);
 
 //    for (i=0; i < newdst->node_n; i++)
-//      newdst->node[i].feat = AllocFloatArray(newdst->nfeats);
+//      newdst->node[i].feat = AllocFloatArray(newdst->feat_n);
 
       for (i = 0; i < (*dst)->node_n; i++)
-        snode_copy (&(newdst->node[i]), &((*dst)->node[i]), newdst->nfeats);
+        snode_copy (&(newdst->node[i]), &((*dst)->node[i]), newdst->feat_n);
       j = i;
 
       k = 0;
@@ -145,10 +145,10 @@ move_irrelevant_nodes (subgraph ** src, subgraph ** dst)
         {
           if ((*src)->node[i].relevant) // relevant node
             snode_copy (&(newsrc->node[k++]), &((*src)->node[i]),
-                       newsrc->nfeats);
+                       newsrc->feat_n);
           else
             snode_copy (&(newdst->node[j++]), &((*src)->node[i]),
-                       newdst->nfeats);
+                       newdst->feat_n);
         }
       subgraph_destroy (&(*src));
       subgraph_destroy (&(*dst));
@@ -176,13 +176,13 @@ move_misclassified_nodes (subgraph ** src, subgraph ** dst, int *p)
       newsrc = subgraph_create ((*src)->node_n - num_of_misclassified);
       newdst = subgraph_create ((*dst)->node_n + num_of_misclassified);
 
-      newsrc->nfeats = (*src)->nfeats;
-      newdst->nfeats = (*dst)->nfeats;
-      newsrc->nlabels = (*src)->nlabels;
-      newdst->nlabels = (*dst)->nlabels;
+      newsrc->feat_n = (*src)->feat_n;
+      newdst->feat_n = (*dst)->feat_n;
+      newsrc->label_n = (*src)->label_n;
+      newdst->label_n = (*dst)->label_n;
 
       for (i = 0; i < (*dst)->node_n; i++)
-        snode_copy (&(newdst->node[i]), &((*dst)->node[i]), newdst->nfeats);
+        snode_copy (&(newdst->node[i]), &((*dst)->node[i]), newdst->feat_n);
       j = i;
 
       k = 0;
@@ -190,10 +190,10 @@ move_misclassified_nodes (subgraph ** src, subgraph ** dst, int *p)
         {
           if ((*src)->node[i].label_true == (*src)->node[i].label)       // misclassified node
             snode_copy (&(newsrc->node[k++]), &((*src)->node[i]),
-                       newsrc->nfeats);
+                       newsrc->feat_n);
           else
             snode_copy (&(newdst->node[j++]), &((*src)->node[i]),
-                       newdst->nfeats);
+                       newdst->feat_n);
         }
       subgraph_destroy (&(*src));
       subgraph_destroy (&(*dst));
@@ -260,7 +260,7 @@ mst_prototypes (subgraph * sg)
                   if (!use_precomputed_distance)
                     weight =
                       arc_weight (sg->node[p].feat, sg->node[q].feat,
-                                     sg->nfeats);
+                                     sg->feat_n);
                   else
                     weight =
                       distance_value[sg->node[p].position][sg->
@@ -331,7 +331,7 @@ supervised_training (subgraph * sg)
                   if (!use_precomputed_distance)
                     weight =
                       arc_weight (sg->node[p].feat, sg->node[q].feat,
-                                     sg->nfeats);
+                                     sg->feat_n);
                   else
                     weight =
                       distance_value[sg->node[p].position][sg->
@@ -368,7 +368,7 @@ supervised_classifying (subgraph * sg_train, subgraph * sg)
       k = sg_train->ordered_list_of_nodes[j];
       if (!use_precomputed_distance)
         weight =
-          arc_weight (sg_train->node[k].feat, sg->node[i].feat, sg->nfeats);
+          arc_weight (sg_train->node[k].feat, sg->node[i].feat, sg->feat_n);
       else
         weight =
           distance_value[sg_train->node[k].position][sg->node[i].position];

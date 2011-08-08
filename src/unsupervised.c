@@ -89,7 +89,7 @@ unsupervised_clustering (subgraph * sg)
         }
     }
 
-  sg->nlabels = l;
+  sg->label_n = l;
 
   real_heap_destroy (&Q);
   free (path_val);
