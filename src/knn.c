@@ -7,8 +7,8 @@ subgraph_knn_create (subgraph * sg, int knn)
 {
   int i, j, l, k;
   float dist;
-  int *nn = AllocIntArray (knn + 1);
-  float *d = AllocFloatArray (knn + 1);
+  int *nn = alloc_int (knn + 1);
+  float *d = alloc_float (knn + 1);
 
   /* Create graph with the knn-nearest neighbors */
 
@@ -70,9 +70,9 @@ subgraph_knn_max_distances_evaluate (subgraph * sg, int kmax)
 {
   int i, j, l, k;
   float dist;
-  int *nn = AllocIntArray (kmax + 1);
-  float *d = AllocFloatArray (kmax + 1);
-  float *maxdists = AllocFloatArray (kmax);
+  int *nn = alloc_int (kmax + 1);
+  float *d = alloc_float (kmax + 1);
+  float *maxdists = alloc_float (kmax);
   /* Create graph with the knn-nearest neighbors */
 
   sg->df = 0.0;
@@ -198,7 +198,7 @@ subgraph_k_max_clustering (subgraph * sg)
 
   // Compute clustering
 
-  path_val = AllocFloatArray (sg->node_n);
+  path_val = alloc_float (sg->node_n);
   Q = create_real_heap (sg->node_n, path_val);
   real_heap_set_removal_policy (Q, REMOVAL_POLICY_MAX);
 
@@ -259,7 +259,7 @@ subgraph_k_max_pdf (subgraph * sg)
   int i, nelems;
   const int kmax = sg->k_best;
   double dist;
-  float *value = AllocFloatArray (sg->node_n);
+  float *value = alloc_float (sg->node_n);
   set *adj = NULL;
 
   sg->k = (2.0 * (float) sg->df / 9.0);
@@ -332,8 +332,8 @@ subgraph_k_max_normalized_cut (subgraph * sg)
   float *acumEC;                //acumulate weights between the class and a distinct one
 
   ncut = 0.0;
-  acumIC = AllocFloatArray (sg->label_n);
-  acumEC = AllocFloatArray (sg->label_n);
+  acumIC = alloc_float (sg->label_n);
+  acumEC = alloc_float (sg->label_n);
 
   for (p = 0; p < sg->node_n; p++)
     {

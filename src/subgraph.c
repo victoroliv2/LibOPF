@@ -105,7 +105,7 @@ subgraph_copy (subgraph * g)
 void
 snode_copy (snode * dest, snode * src, int feat_n)
 {
-  dest->feat = AllocFloatArray (feat_n);
+  dest->feat = alloc_float (feat_n);
   memcpy (dest->feat, src->feat, feat_n * sizeof (float));
   dest->path_val = src->path_val;
   dest->dens = src->dens;
@@ -293,8 +293,8 @@ void
 subgraph_split (subgraph * sg, subgraph ** sg1, subgraph ** sg2,
                    float perc1)
 {
-  int *label = AllocIntArray (sg->label_n + 1), i, j, i1, i2;
-  int *nelems = AllocIntArray (sg->label_n + 1), totelems;
+  int *label = alloc_int (sg->label_n + 1), i, j, i1, i2;
+  int *nelems = alloc_int (sg->label_n + 1), totelems;
   srandom ((int) time (NULL));
 
   for (i = 0; i < sg->node_n; i++)
@@ -321,9 +321,9 @@ subgraph_split (subgraph * sg, subgraph ** sg1, subgraph ** sg2,
   (*sg2)->feat_n = sg->feat_n;
 
   for (i1 = 0; i1 < (*sg1)->node_n; i1++)
-    (*sg1)->node[i1].feat = AllocFloatArray ((*sg1)->feat_n);
+    (*sg1)->node[i1].feat = alloc_float ((*sg1)->feat_n);
   for (i2 = 0; i2 < (*sg2)->node_n; i2++)
-    (*sg2)->node[i2].feat = AllocFloatArray ((*sg2)->feat_n);
+    (*sg2)->node[i2].feat = alloc_float ((*sg2)->feat_n);
 
   (*sg1)->label_n = sg->label_n;
   (*sg2)->label_n = sg->label_n;
@@ -400,7 +400,7 @@ subgraph_pdf_evaluate (subgraph * sg)
 {
   int i, nelems;
   double dist;
-  float *value = AllocFloatArray (sg->node_n);
+  float *value = alloc_float (sg->node_n);
   set *adj = NULL;
 
   sg->k = (2.0 * (float) sg->df / 9.0);

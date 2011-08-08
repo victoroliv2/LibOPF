@@ -13,7 +13,7 @@ subgraph_accuracy (subgraph * sg)
   for (i = 0; i <= sg->label_n; i++)
     error_matrix[i] = (float *) calloc (2, sizeof (float));
 
-  nclass = AllocIntArray (sg->label_n + 1);
+  nclass = alloc_int (sg->label_n + 1);
 
   for (i = 0; i < sg->node_n; i++)
     {
@@ -82,8 +82,8 @@ subgraph_normalized_cut (subgraph * sg)
   float *acumEC;                //acumulate weights between the class and a distinct one
 
   ncut = 0.0;
-  acumIC = AllocFloatArray (sg->label_n);
-  acumEC = AllocFloatArray (sg->label_n);
+  acumIC = alloc_float (sg->label_n);
+  acumEC = alloc_float (sg->label_n);
 
   for (p = 0; p < sg->node_n; p++)
     {

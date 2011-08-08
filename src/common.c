@@ -31,3 +31,17 @@ random_int (int low, int high)
   k = d * (high - low);
   return low + k;
 }
+
+float *
+alloc_float (size_t n)
+{
+  return (float *) malloc (n*sizeof(float));
+}
+
+int *
+alloc_int (size_t n)
+{
+  return (int *) malloc (n*sizeof(int));
+}
+
+

@@ -44,7 +44,7 @@ unsupervised_clustering (subgraph * sg)
 
   // Compute clustering
 
-  path_val = AllocFloatArray (sg->node_n);
+  path_val = alloc_float (sg->node_n);
   Q = create_real_heap (sg->node_n, path_val);
   real_heap_set_removal_policy (Q, REMOVAL_POLICY_MAX);
 

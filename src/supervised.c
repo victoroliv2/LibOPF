@@ -89,7 +89,7 @@ remove_irrelevant_nodes (subgraph ** sg)
       newsg = subgraph_create ((*sg)->node_n - num_of_irrelevants);
       newsg->feat_n = (*sg)->feat_n;
 //    for (i=0; i < newsg->node_n; i++)
-//      newsg->node[i].feat = AllocFloatArray(newsg->feat_n);
+//      newsg->node[i].feat = alloc_float(newsg->feat_n);
 
       k = 0;
       newsg->label_n = (*sg)->label_n;
@@ -131,10 +131,10 @@ move_irrelevant_nodes (subgraph ** src, subgraph ** dst)
       newdst->label_n = (*dst)->label_n;
 
 //    for (i=0; i < newsrc->node_n; i++)
-//      newsrc->node[i].feat = AllocFloatArray(newsrc->feat_n);
+//      newsrc->node[i].feat = alloc_float(newsrc->feat_n);
 
 //    for (i=0; i < newdst->node_n; i++)
-//      newdst->node[i].feat = AllocFloatArray(newdst->feat_n);
+//      newdst->node[i].feat = alloc_float(newdst->feat_n);
 
       for (i = 0; i < (*dst)->node_n; i++)
         snode_copy (&(newdst->node[i]), &((*dst)->node[i]), newdst->feat_n);
@@ -214,7 +214,7 @@ mst_prototypes (subgraph * sg)
   float nproto;
 
   // initialization
-  path_val = AllocFloatArray (sg->node_n);
+  path_val = alloc_float (sg->node_n);
   Q = create_real_heap (sg->node_n, path_val);
 
   for (p = 0; p < sg->node_n; p++)
@@ -293,7 +293,7 @@ supervised_training (subgraph * sg)
   mst_prototypes (sg);
 
   // initialization
-  path_val = AllocFloatArray (sg->node_n);
+  path_val = alloc_float (sg->node_n);
 
   Q = create_real_heap (sg->node_n, path_val);
 
