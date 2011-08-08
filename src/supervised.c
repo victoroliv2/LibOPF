@@ -43,7 +43,7 @@ swap_errors_by_non_prototypes (subgraph ** sg_train, subgraph ** sg_eval)
           counter = non_prototypes;
           while (counter > 0)
             {
-              j = RandomInteger (0, (*sg_train)->node_n - 1);
+              j = random_int (0, (*sg_train)->node_n - 1);
               if ((*sg_train)->node[j].pred != NIL)
                 {
                   snode_swap (&((*sg_train)->node[j]), &((*sg_eval)->node[i]));
@@ -215,7 +215,7 @@ mst_prototypes (subgraph * sg)
 
   // initialization
   path_val = alloc_float (sg->node_n);
-  Q = create_real_heap (sg->node_n, path_val);
+  Q = real_heap_create (sg->node_n, path_val);
 
   for (p = 0; p < sg->node_n; p++)
     {
@@ -295,7 +295,7 @@ supervised_training (subgraph * sg)
   // initialization
   path_val = alloc_float (sg->node_n);
 
-  Q = create_real_heap (sg->node_n, path_val);
+  Q = real_heap_create (sg->node_n, path_val);
 
   for (p = 0; p < sg->node_n; p++)
     {
@@ -386,7 +386,7 @@ supervised_classifying (subgraph * sg_train, subgraph * sg)
           if (!use_precomputed_distance)
             weight =
               arc_weight (sg_train->node[l].feat, sg->node[i].feat,
-                             sg->nfeats);
+                             sg->feat_n);
           else
             weight =
               distance_value[sg_train->node[l].position][sg->
@@ -421,7 +421,7 @@ supervised_learning (subgraph ** sg_train, subgraph ** sg_eval)
       fflush (stdout);
       fprintf (stdout, "\nrunning iteration ... %d ", i);
       supervised_training (*sg_train);
-      supervised_training (*sg_train, *sg_eval);
+      supervised_classifying (*sg_train, *sg_eval);
       Acc = subgraph_accuracy (*sg_eval);
       if (Acc > MaxAcc)
         {

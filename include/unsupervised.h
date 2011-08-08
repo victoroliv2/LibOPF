@@ -16,7 +16,6 @@
 #include "common.h"
 #include "set.h"
 #include "subgraph.h"
-#include "sgctree.h"
 #include "realheap.h"
 #include "metrics.h"
 

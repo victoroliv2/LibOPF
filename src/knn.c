@@ -1,4 +1,6 @@
 #include "common.h"
+#include "metrics.h"
+#include "realheap.h"
 #include "knn.h"
 
 // Create adjacent list in subgraph: a knn graph
@@ -199,7 +201,7 @@ subgraph_k_max_clustering (subgraph * sg)
   // Compute clustering
 
   path_val = alloc_float (sg->node_n);
-  Q = create_real_heap (sg->node_n, path_val);
+  Q = real_heap_create (sg->node_n, path_val);
   real_heap_set_removal_policy (Q, REMOVAL_POLICY_MAX);
 
   for (p = 0; p < sg->node_n; p++)
@@ -407,6 +409,4 @@ subgraph_best_k_min_cut (subgraph * sg, int kmin, int kmax)
 
   subgraph_knn_create (sg, sg->k_best);
   subgraph_pdf_evaluate (sg);
-
-  printf ("best k %d ", sg->k_best);
-
+}

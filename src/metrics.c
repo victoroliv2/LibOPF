@@ -21,6 +21,7 @@ static  float d_eucl_log (float *f1, float *f2, int n)
 }
 
 /* gaussian */
+/*
 static  float d_gauss (float *f1, float *f2, int n, float gamma)
 {
   int     i;
@@ -33,6 +34,7 @@ static  float d_gauss (float *f1, float *f2, int n, float gamma)
 
   return (dist);
 }
+*/
 
 /* chi-squared */
 static  float d_chi_square (float *f1, float *f2, int n)
@@ -142,9 +144,9 @@ set_metric (METRIC m)
     case LOG_EUCLIDIAN:
       arc_weight = d_eucl_log;
       break;
-    case GAUSSIAN:
+/*    case GAUSSIAN:
       arc_weight = d_gauss;
-      break;
+      break;*/
     case CHI_SQUARE:
       arc_weight = d_chi_square;
       break;
