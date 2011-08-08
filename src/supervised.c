@@ -295,9 +295,9 @@ supervised_training (subgraph * sg)
   // initialization
   path_val = AllocFloatArray (sg->node_n);
 
-  Q = create_real_heap (sg->nnodes, path_val);
+  Q = create_real_heap (sg->node_n, path_val);
 
-  for (p = 0; p < sg->nnodes; p++)
+  for (p = 0; p < sg->node_n; p++)
     {
       if (sg->node[p].status == STATUS_PROTOTYPE)
         {
@@ -322,7 +322,7 @@ supervised_training (subgraph * sg)
       i++;
       sg->node[p].path_val = path_val[p];
 
-      for (q = 0; q < sg->nnodes; q++)
+      for (q = 0; q < sg->node_n; q++)
         {
           if (p != q)
             {
@@ -362,7 +362,7 @@ supervised_classifying (subgraph * sg_train, subgraph * sg)
   int i, j, k, l, label = -1;
   float tmp, weight, minCost;
 
-  for (i = 0; i < sg->nnodes; i++)
+  for (i = 0; i < sg->node_n; i++)
     {
       j = 0;
       k = sg_train->ordered_list_of_nodes[j];
@@ -376,7 +376,7 @@ supervised_classifying (subgraph * sg_train, subgraph * sg)
       minCost = MAX (sg_train->node[k].path_val, weight);
       label = sg_train->node[k].label;
 
-      while ((j < sg_train->nnodes - 1) &&
+      while ((j < sg_train->node_n - 1) &&
              (minCost >
               sg_train->node[sg_train->ordered_list_of_nodes[j + 1]].path_val))
         {

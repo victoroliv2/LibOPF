@@ -16,25 +16,30 @@
   This program is a collection of functions to manage the Optimum-Path Forest (OPF)
   classifier.*/
 
-#include "assert.h"
+#include <assert.h>
+#include <time.h>
+
+#include "common.h"
+#include "metrics.h"
+#include "knn.h"
 #include "subgraph.h"
 
 /*----------- Constructor and destructor ------------------------*/
 // Allocate nodes without features
 subgraph *
-subgraph_create (int nnodes)
+subgraph_create (int node_n)
 {
   subgraph *sg = (subgraph *) calloc (1, sizeof (subgraph));
   int i;
 
-  sg->nnodes = nnodes;
-  sg->node = (snode *) calloc (nnodes, sizeof (snode));
-  sg->ordered_list_of_nodes = (int *) calloc (nnodes, sizeof (int));
+  sg->node_n = node_n;
+  sg->node = (snode *) calloc (node_n, sizeof (snode));
+  sg->ordered_list_of_nodes = (int *) calloc (node_n, sizeof (int));
 
   if (sg->node == NULL)
     error (LOG_OUT_OF_MEMORY);
 
-  for (i = 0; i < sg->nnodes; i++)
+  for (i = 0; i < sg->node_n; i++)
     {
       sg->node[i].feat = NULL;
       sg->node[i].relevant = 0;
@@ -51,7 +56,7 @@ subgraph_destroy (subgraph ** sg)
 
   if ((*sg) != NULL)
     {
-      for (i = 0; i < (*sg)->nnodes; i++)
+      for (i = 0; i < (*sg)->node_n; i++)
         {
           if ((*sg)->node[i].feat != NULL)
             free ((*sg)->node[i].feat);
@@ -74,17 +79,17 @@ subgraph_copy (subgraph * g)
 
   if (g != NULL)
     {
-      clone = subgraph_create (g->nnodes);
+      clone = subgraph_create (g->node_n);
 
-      clone->bestk = g->bestk;
+      clone->k_best = g->k_best;
       clone->df = g->df;
       clone->label_n = g->label_n;
       clone->feat_n = g->feat_n;
       clone->dens_min = g->dens_min;
       clone->dens_max = g->dens_max;
-      clone->K = g->K;
+      clone->k = g->k;
 
-      for (i = 0; i < g->nnodes; i++)
+      for (i = 0; i < g->node_n; i++)
         {
           snode_copy (&clone->node[i], &g->node[i], g->feat_n);
           clone->ordered_list_of_nodes[i] = g->ordered_list_of_nodes[i];
@@ -102,7 +107,7 @@ snode_copy (snode * dest, snode * src, int feat_n)
 {
   dest->feat = AllocFloatArray (feat_n);
   memcpy (dest->feat, src->feat, feat_n * sizeof (float));
-  dest->path_val\ = src->path_val\;
+  dest->path_val = src->path_val;
   dest->dens = src->dens;
   dest->label = src->label;
   dest->root = src->root;
@@ -135,7 +140,7 @@ subgraph_reset (subgraph * sg)
 {
   int i;
 
-  for (i = 0; i < sg->nnodes; i++)
+  for (i = 0; i < sg->node_n; i++)
     sg->node[i].pred = NIL;
   subgraph_knn_destroy (sg);
 }
@@ -146,7 +151,7 @@ subgraph_merge (subgraph * sg1, subgraph * sg2)
 {
   assert (sg1->feat_n == sg2->feat_n);
 
-  subgraph *out = subgraph_create (sg1->nnodes + sg2->nnodes);
+  subgraph *out = subgraph_create (sg1->node_n + sg2->node_n);
   int i = 0, j;
 
   if (sg1->label_n > sg2->label_n)
@@ -155,9 +160,9 @@ subgraph_merge (subgraph * sg1, subgraph * sg2)
     out->label_n = sg2->label_n;
   out->feat_n = sg1->feat_n;
 
-  for (i = 0; i < sg1->nnodes; i++)
+  for (i = 0; i < sg1->node_n; i++)
     snode_copy (&out->node[i], &sg1->node[i], out->feat_n);
-  for (j = 0; j < sg2->nnodes; j++)
+  for (j = 0; j < sg2->node_n; j++)
     {
       snode_copy (&out->node[i], &sg2->node[j], out->feat_n);
       i++;
@@ -179,13 +184,13 @@ subgraph_k_fold (subgraph * sg, int k)
   int *nelems_aux = (int *) calloc ((sg->label_n + 1), sizeof (int)), *resto =
     (int *) calloc ((sg->label_n + 1), sizeof (int));
 
-  for (i = 0; i < sg->nnodes; i++)
+  for (i = 0; i < sg->node_n; i++)
     {
       sg->node[i].status = 0;
       label[sg->node[i].label_true]++;
     }
 
-  for (i = 0; i < sg->nnodes; i++)
+  for (i = 0; i < sg->node_n; i++)
     nelems[sg->node[i].label_true] =
       MAX ((int) ((1 / (float) k) * label[sg->node[i].label_true]), 1);
 
@@ -243,7 +248,7 @@ subgraph_k_fold (subgraph * sg, int k)
         {
           if (i == k - 1)
             {
-              for (w = m; w < sg->nnodes; w++)
+              for (w = m; w < sg->node_n; w++)
                 {
                   if (sg->node[w].status != NIL)
                     {
@@ -255,7 +260,7 @@ subgraph_k_fold (subgraph * sg, int k)
 
             }
           else
-            j = RandomInteger (0, sg->nnodes - 1);
+            j = random_int (0, sg->node_n - 1);
           if (sg->node[j].status != NIL)
             {
               if (nelems[sg->node[j].label_true] > 0)
@@ -292,13 +297,13 @@ subgraph_split (subgraph * sg, subgraph ** sg1, subgraph ** sg2,
   int *nelems = AllocIntArray (sg->label_n + 1), totelems;
   srandom ((int) time (NULL));
 
-  for (i = 0; i < sg->nnodes; i++)
+  for (i = 0; i < sg->node_n; i++)
     {
       sg->node[i].status = 0;
       label[sg->node[i].label_true]++;
     }
 
-  for (i = 0; i < sg->nnodes; i++)
+  for (i = 0; i < sg->node_n; i++)
     {
       nelems[sg->node[i].label_true] =
         MAX ((int) (perc1 * label[sg->node[i].label_true]), 1);
@@ -311,13 +316,13 @@ subgraph_split (subgraph * sg, subgraph ** sg1, subgraph ** sg2,
     totelems += nelems[j];
 
   *sg1 = subgraph_create (totelems);
-  *sg2 = subgraph_create (sg->nnodes - totelems);
+  *sg2 = subgraph_create (sg->node_n - totelems);
   (*sg1)->feat_n = sg->feat_n;
   (*sg2)->feat_n = sg->feat_n;
 
-  for (i1 = 0; i1 < (*sg1)->nnodes; i1++)
+  for (i1 = 0; i1 < (*sg1)->node_n; i1++)
     (*sg1)->node[i1].feat = AllocFloatArray ((*sg1)->feat_n);
-  for (i2 = 0; i2 < (*sg2)->nnodes; i2++)
+  for (i2 = 0; i2 < (*sg2)->node_n; i2++)
     (*sg2)->node[i2].feat = AllocFloatArray ((*sg2)->feat_n);
 
   (*sg1)->label_n = sg->label_n;
@@ -326,7 +331,7 @@ subgraph_split (subgraph * sg, subgraph ** sg1, subgraph ** sg2,
   i1 = 0;
   while (totelems > 0)
     {
-      i = RandomInteger (0, sg->nnodes - 1);
+      i = random_int (0, sg->node_n - 1);
       if (sg->node[i].status != NIL)
         {
           if (nelems[sg->node[i].label_true] > 0)        // copy node to sg1
@@ -345,7 +350,7 @@ subgraph_split (subgraph * sg, subgraph ** sg1, subgraph ** sg2,
     }
 
   i2 = 0;
-  for (i = 0; i < sg->nnodes; i++)
+  for (i = 0; i < sg->node_n; i++)
     {
       if (sg->node[i].status != NIL)
         {
@@ -370,10 +375,10 @@ subgraph_normalize_features (subgraph * sg)
 
   for (i = 0; i < sg->feat_n; i++)
     {
-      for (j = 0; j < sg->nnodes; j++)
-        mean[i] += sg->node[j].feat[i] / sg->nnodes;
-      for (j = 0; j < sg->nnodes; j++)
-        std[i] += pow (sg->node[j].feat[i] - mean[i], 2) / sg->nnodes;
+      for (j = 0; j < sg->node_n; j++)
+        mean[i] += sg->node[j].feat[i] / sg->node_n;
+      for (j = 0; j < sg->node_n; j++)
+        std[i] += pow (sg->node[j].feat[i] - mean[i], 2) / sg->node_n;
       std[i] = sqrt (std[i]);
       if (std[i] == 0)
         std[i] = 1.0;
@@ -381,7 +386,7 @@ subgraph_normalize_features (subgraph * sg)
 
   for (i = 0; i < sg->feat_n; i++)
     {
-      for (j = 0; j < sg->nnodes; j++)
+      for (j = 0; j < sg->node_n; j++)
         sg->node[j].feat[i] = (sg->node[j].feat[i] - mean[i]) / std[i];
     }
 
@@ -398,7 +403,7 @@ subgraph_pdf_evaluate (subgraph * sg)
   float *value = AllocFloatArray (sg->node_n);
   set *adj = NULL;
 
-  sg->K = (2.0 * (float) sg->df / 9.0);
+  sg->k = (2.0 * (float) sg->df / 9.0);
   sg->dens_min = FLT_MAX;
   sg->dens_max = FLT_MIN;
   for (i = 0; i < sg->node_n; i++)
@@ -417,7 +422,7 @@ subgraph_pdf_evaluate (subgraph * sg)
               distance_value[sg->node[i].position][sg->
                                                       node[adj->
                                                            elem].position];
-          value[i] += exp (-dist / sg->K);
+          value[i] += exp (-dist / sg->k);
           adj = adj->next;
           nelems++;
         }

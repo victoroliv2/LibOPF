@@ -15,7 +15,7 @@ unsupervised_clustering (subgraph * sg)
   set *Saux = NULL;
 
   //   Add arcs to guarantee symmetry on plateaus
-  for (i = 0; i < sg->nnodes; i++)
+  for (i = 0; i < sg->node_n; i++)
     {
       adj_i = sg->node[i].adj;
       while (adj_i != NULL)
@@ -44,11 +44,11 @@ unsupervised_clustering (subgraph * sg)
 
   // Compute clustering
 
-  path_val = AllocFloatArray (sg->nnodes);
-  Q = create_real_heap (sg->nnodes, path_val);
+  path_val = AllocFloatArray (sg->node_n);
+  Q = create_real_heap (sg->node_n, path_val);
   real_heap_set_removal_policy (Q, REMOVAL_POLICY_MAX);
 
-  for (p = 0; p < sg->nnodes; p++)
+  for (p = 0; p < sg->node_n; p++)
     {
       path_val[p] = sg->node[p].path_val;
       sg->node[p].pred = NIL;
@@ -104,9 +104,9 @@ unsupervised_clustering (subgraph * sg_train, subgraph * sg)
   int i, j, k;
   float weight;
 
-  for (i = 0; i < sg->nnodes; i++)
+  for (i = 0; i < sg->node_n; i++)
     {
-      for (j = 0; (j < sg_train->nnodes); j++)
+      for (j = 0; (j < sg_train->node_n); j++)
         {
           k = sg_train->ordered_list_of_nodes[j];
           if (!use_precomputed_distance)

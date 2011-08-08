@@ -146,7 +146,7 @@ subgraph_knn_destroy (subgraph * sg)
     }
 }
 
-// OPFClustering computation only for sg->bestk neighbors
+// OPFClustering computation only for sg->k_best neighbors
 void
 subgraph_k_max_clustering (subgraph * sg)
 {
@@ -154,7 +154,7 @@ subgraph_k_max_clustering (subgraph * sg)
   char insert_i;
   int i, j;
   int p, q, l, ki, kj;
-  const int kmax = sg->bestk;
+  const int kmax = sg->k_best;
   float tmp, *path_val = NULL;
   real_heap *Q = NULL;
   set *Saux = NULL;
@@ -252,17 +252,17 @@ subgraph_k_max_clustering (subgraph * sg)
 }
 
 
-// PDF computation only for sg->bestk neighbors
+// PDF computation only for sg->k_best neighbors
 void
 subgraph_k_max_pdf (subgraph * sg)
 {
   int i, nelems;
-  const int kmax = sg->bestk;
+  const int kmax = sg->k_best;
   double dist;
   float *value = AllocFloatArray (sg->node_n);
   set *adj = NULL;
 
-  sg->K = (2.0 * (float) sg->df / 9.0);
+  sg->k = (2.0 * (float) sg->df / 9.0);
 
   sg->dens_min = FLT_MAX;
   sg->dens_max = FLT_MIN;
@@ -286,7 +286,7 @@ subgraph_k_max_pdf (subgraph * sg)
               distance_value[sg->node[i].position][sg->
                                                       node[adj->
                                                            elem].position];
-          value[i] += exp (-dist / sg->K);
+          value[i] += exp (-dist / sg->k);
           adj = adj->next;
           nelems++;
         }
@@ -320,12 +320,12 @@ subgraph_k_max_pdf (subgraph * sg)
   free (value);
 }
 
-// Normalized cut computed only for sg->bestk neighbors
+// Normalized cut computed only for sg->k_best neighbors
 float
 subgraph_k_max_normalized_cut (subgraph * sg)
 {
   int l, p, q, k;
-  const int kmax = sg->bestk;
+  const int kmax = sg->k_best;
   set *Saux;
   float ncut, dist;
   float *acumIC;                //acumulate weights inside each class
@@ -377,7 +377,7 @@ subgraph_k_max_normalized_cut (subgraph * sg)
 void
 subgraph_best_k_min_cut (subgraph * sg, int kmin, int kmax)
 {
-  int k, bestk = kmax;
+  int k, k_best = kmax;
   float mincut = FLT_MAX, nc;
 
   float *maxdists = subgraph_knn_max_distances_evaluate (sg, kmax); // stores the maximum distances for every k=1,2,...,kmax
@@ -386,7 +386,7 @@ subgraph_best_k_min_cut (subgraph * sg, int kmin, int kmax)
   for (k = kmin; (k <= kmax) && (mincut != 0.0); k++)
     {
       sg->df = maxdists[k - 1];
-      sg->bestk = k;
+      sg->k_best = k;
 
       subgraph_k_max_pdf (sg);
 
@@ -397,16 +397,16 @@ subgraph_best_k_min_cut (subgraph * sg, int kmin, int kmax)
       if (nc < mincut)
         {
           mincut = nc;
-          bestk = k;
+          k_best = k;
         }
     }
   free (maxdists);
   subgraph_knn_destroy (sg);
 
-  sg->bestk = bestk;
+  sg->k_best = k_best;
 
-  subgraph_knn_create (sg, sg->bestk);
+  subgraph_knn_create (sg, sg->k_best);
   subgraph_pdf_evaluate (sg);
 
-  printf ("best k %d ", sg->bestk);
+  printf ("best k %d ", sg->k_best);
 

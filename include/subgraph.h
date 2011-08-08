@@ -73,5 +73,5 @@ void       subgraph_split   (subgraph * sg, subgraph ** sg1,
                                                              * the size of the  first part is given by
                                                              * a percentual of samples.                  */
 void       subgraph_normalize_features (subgraph * sg);     /* normalize features                        */
-float      subgraph_pdf_evaluate       (subgraph * sg);
+void       subgraph_pdf_evaluate       (subgraph * sg);
 #endif /* _SUBGRAPH_H_ */
