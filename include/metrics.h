@@ -1,6 +1,9 @@
 #ifndef __METRICS_H__
 #define __METRICS_H__
 
+#include "math.h"
+#include "common.h"
+
 typedef float (*arc_weight_function) (float *f1, float *f2, int n);
 
 typedef enum

@@ -2,43 +2,6 @@
 #include "metrics.h"
 #undef __METRICS_MAIN__
 
-void
-set_metric (METRIC m)
-{
-  switch (m)
-  {
-    case EUCLIDIAN:
-      arc_weight = d_eucl;
-      break;
-    case LOG_EUCLIDIAN:
-      arc_weight = d_eucl_log;
-      break;
-    case GAUSSIAN:
-      arc_weight = d_gauss;
-      break;
-    case CHI_SQUARE:
-      arc_weight = d_chi_square;
-      break;
-    case MANHATTAN:
-      arc_weight = d_manhattan;
-      break;
-    case CANBERRA:
-      arc_weight = d_canberra;
-      break;
-    case SQUARED_CHORD:
-      arc_weight = d_squared_chord;
-      break;
-    case SQUARED_CHI_SQUARE:
-      arc_weight = d_squared_chi_square;
-      break;
-    case BRAY_CURTIS:
-      arc_weight = d_bray_curtis;
-      break;
-    default:
-      error ("Undefinied metric");
-  }
-}
-
 /* euclidean */
 static  float d_eucl (float *f1, float *f2, int n)
 {
@@ -166,4 +129,41 @@ static  float d_bray_curtis (float *f1, float *f2, int n)
     }
 
   return (dist);
+}
+
+void
+set_metric (METRIC m)
+{
+  switch (m)
+  {
+    case EUCLIDIAN:
+      arc_weight = d_eucl;
+      break;
+    case LOG_EUCLIDIAN:
+      arc_weight = d_eucl_log;
+      break;
+    case GAUSSIAN:
+      arc_weight = d_gauss;
+      break;
+    case CHI_SQUARE:
+      arc_weight = d_chi_square;
+      break;
+    case MANHATTAN:
+      arc_weight = d_manhattan;
+      break;
+    case CANBERRA:
+      arc_weight = d_canberra;
+      break;
+    case SQUARED_CHORD:
+      arc_weight = d_squared_chord;
+      break;
+    case SQUARED_CHI_SQUARE:
+      arc_weight = d_squared_chi_square;
+      break;
+    case BRAY_CURTIS:
+      arc_weight = d_bray_curtis;
+      break;
+    default:
+      error ("Undefinied metric");
+  }
 }
