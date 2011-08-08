@@ -16,6 +16,25 @@
   This program is a collection of functions to manage the Optimum-Path Forest (OPF)
   classifier.*/
 
+#include <malloc.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+#include <time.h>
+#include <math.h>
+#include <float.h>
+#include <assert.h>
+#include <sys/time.h>
+#include <time.h>
+
+#include "common.h"
+#include "set.h"
+#include "subgraph.h"
+#include "realheap.h"
+#include "metrics.h"
+#include "measures.h"
+#include "knn.h"
 #include "supervised.h"
 
 //Replace errors from evaluating set by non prototypes from training set
@@ -282,7 +301,7 @@ mst_prototypes (subgraph * sg)
 
 //Training function -----
 void
-supervised_training (subgraph * sg)
+supervised_train (subgraph * sg)
 {
   int p, q, i;
   float tmp, weight;
@@ -409,7 +428,7 @@ supervised_classifying (subgraph * sg_train, subgraph * sg)
 //missclassified samples in the evaluation set by non prototypes from
 //training set -----
 void
-supervised_learning (subgraph ** sg_train, subgraph ** sg_eval)
+supervised_learn (subgraph ** sg_train, subgraph ** sg_eval)
 {
   int i = 0, iterations = 10;
   float Acc = FLT_MIN, AccAnt = FLT_MIN, MaxAcc = FLT_MIN, delta;
@@ -420,8 +439,8 @@ supervised_learning (subgraph ** sg_train, subgraph ** sg_eval)
       AccAnt = Acc;
       fflush (stdout);
       fprintf (stdout, "\nrunning iteration ... %d ", i);
-      supervised_training (*sg_train);
-      supervised_classifying (*sg_train, *sg_eval);
+      supervised_train (*sg_train);
+      supervised_classify (*sg_train, *sg_eval);
       Acc = subgraph_accuracy (*sg_eval);
       if (Acc > MaxAcc)
         {
@@ -444,7 +463,7 @@ supervised_learning (subgraph ** sg_train, subgraph ** sg_eval)
 
 
 void
-supervised_agglomerative_learning (subgraph ** sg_train, subgraph ** sg_eval)
+supervised_agglomerative_learn (subgraph ** sg_train, subgraph ** sg_eval)
 {
   int n, i = 1;
   float Acc;
@@ -455,8 +474,8 @@ supervised_agglomerative_learning (subgraph ** sg_train, subgraph ** sg_eval)
       fflush (stdout);
       fprintf (stdout, "\nrunning iteration ... %d ", i++);
       n = 0;
-      supervised_training (*sg_train);
-      supervised_classifying (*sg_train, *sg_eval);
+      supervised_train (*sg_train);
+      supervised_classify (*sg_train, *sg_eval);
       Acc = subgraph_accuracy (*sg_eval);
       fprintf (stdout, " %f", Acc * 100);
       move_misclassified_nodes (&(*sg_eval), &(*sg_train), &n);

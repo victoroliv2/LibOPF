@@ -1,3 +1,9 @@
+#include "common.h"
+#include "set.h"
+#include "subgraph.h"
+#include "realheap.h"
+#include "metrics.h"
+
 #include "unsupervised.h"
 
 //Training function: it computes unsupervised training for the
@@ -45,7 +51,7 @@ unsupervised_clustering (subgraph * sg)
   // Compute clustering
 
   path_val = alloc_float (sg->node_n);
-  Q = create_real_heap (sg->node_n, path_val);
+  Q = real_heap_create (sg->node_n, path_val);
   real_heap_set_removal_policy (Q, REMOVAL_POLICY_MAX);
 
   for (p = 0; p < sg->node_n; p++)
@@ -99,7 +105,7 @@ unsupervised_clustering (subgraph * sg)
 // the OPF-clustering labels from sg_train
 
 void
-unsupervised_clustering (subgraph * sg_train, subgraph * sg)
+unsupervised_knn_classify (subgraph * sg_train, subgraph * sg)
 {
   int i, j, k;
   float weight;
@@ -112,7 +118,7 @@ unsupervised_clustering (subgraph * sg_train, subgraph * sg)
           if (!use_precomputed_distance)
             weight =
               arc_weight (sg_train->node[k].feat, sg->node[i].feat,
-                             sg->nfeats);
+                             sg->feat_n);
           else
             weight =
               distance_value[sg_train->node[k].position][sg->
