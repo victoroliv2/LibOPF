@@ -8,6 +8,9 @@
 #ifndef __LINEAR_ALLOC_H__
 #define __LINEAR_ALLOC_H__
 
+#include <stdint.h>
+#include <stdlib.h>
+
 typedef struct {
     void       *mem;        /* Pointer to buffer memory. */
     uintptr_t   total_size; /* Total size in bytes. */
