@@ -5,7 +5,7 @@ OBJ=./obj
 
 CC=gcc
 
-FLAGS=-g -Wall
+FLAGS=-g -Wall -fPIC
 
 
 INCFLAGS = -I$(INCLUDE)
@@ -13,12 +13,11 @@ INCFLAGS = -I$(INCLUDE)
 all: libopf
 
 libopf: libopf-build
-	echo "libopf.a built..."
 
 libopf-build: \
 aux
 
-	ar csr $(LIB)/libopf.a \
+	$(CC) -fPIC -shared -o $(LIB)/libopf.so \
 $(OBJ)/common.o \
 $(OBJ)/set.o \
 $(OBJ)/realheap.o \

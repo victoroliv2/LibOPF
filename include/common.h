@@ -37,7 +37,7 @@
 #define MIN(x,y) (((x) < (y))?(x):(y))
 #endif
 
-inline void SWAP (int *x, int *y)
+static inline void SWAP (int *x, int *y)
 {
   const int v = *x;
   *x = *y;
