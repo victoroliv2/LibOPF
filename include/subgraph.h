@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "set.h"
+#include "metrics.h"
 
 typedef enum
 {
@@ -46,6 +47,20 @@ typedef struct
 void snode_copy (snode * dest, snode * src, int feat_n); /* copy nodes */
 void snode_swap (snode * a, snode * b);                  /* swap nodes */
 
+
+typedef enum
+{
+  EUCLIDIAN          = 0,
+  LOG_EUCLIDIAN      = 1,
+  /*GAUSSIAN           = 2,*/
+  CHI_SQUARE         = 2,
+  MANHATTAN          = 3,
+  CANBERRA           = 4,
+  SQUARED_CHORD      = 5,
+  SQUARED_CHI_SQUARE = 6,
+  BRAY_CURTIS        = 7
+} METRIC;
+
 typedef struct
 {
   snode  *node;                  /* nodes of the image/scene subgraph                   */
@@ -60,18 +75,14 @@ typedef struct
   int    *ordered_list_of_nodes; /* store the list of nodes in the increasing order
                                   * of cost for speeding up supervised classification.
                                   */
+
+  int use_precomputed_distance;
+  arc_weight_function arc_weight;
+  float **distance_value;
 } subgraph;
 
-subgraph * subgraph_create  (int node_n);                     /* allocates nodes without features        */
-void       subgraph_destroy (subgraph ** sg);                 /* deallocates memory for subgraph         */
-void       subgraph_reset   (subgraph * sg);                  /* resets subgraph fields (pred and arcs)  */
-subgraph * subgraph_copy    (subgraph * g);                   /* copy subgraph (does not copy arcs)      */
-subgraph * subgraph_merge   (subgraph * sg1, subgraph * sg2); /* merge two subgraphs                     */
-subgraph **subgraph_k_fold  (subgraph * sg, int k);           /* it creates k folds for cross validation */
-void       subgraph_split   (subgraph * sg, subgraph ** sg1,
-                             subgraph ** sg2, float perc1); /* split subgraph into two parts such that
-                                                             * the size of the  first part is given by
-                                                             * a percentual of samples.                  */
-void       subgraph_normalize_features (subgraph * sg);     /* normalize features                        */
-void       subgraph_pdf_evaluate       (subgraph * sg);
+subgraph * subgraph_create       (int node_n);     /* allocates nodes without features        */
+void       subgraph_destroy      (subgraph ** sg); /* deallocates memory for subgraph         */
+void       subgraph_set_metric   (subgraph *sg, METRIC m);
+void       subgraph_pdf_evaluate (subgraph * sg);
 #endif /* _SUBGRAPH_H_ */

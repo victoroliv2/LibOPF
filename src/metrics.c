@@ -1,9 +1,12 @@
+#include <math.h>
+#include "common.h"
+
 #define __METRICS_MAIN__
 #include "metrics.h"
-#undef __METRICS_MAIN__
+#undef  __METRICS_MAIN__
 
 /* euclidean */
-static  float d_eucl (float *f1, float *f2, int n)
+  float d_eucl (float *f1, float *f2, int n)
 {
   int     i;
   float   dist = 0.0f;
@@ -15,14 +18,14 @@ static  float d_eucl (float *f1, float *f2, int n)
 }
 
 /* log-euclidian */
-static  float d_eucl_log (float *f1, float *f2, int n)
+  float d_eucl_log (float *f1, float *f2, int n)
 {
   return (((float) ARCW_MAX * log (d_eucl (f1, f2, n) + 1)));
 }
 
 /* gaussian */
 /*
-static  float d_gauss (float *f1, float *f2, int n, float gamma)
+  float d_gauss (float *f1, float *f2, int n, float gamma)
 {
   int     i;
   float   dist = 0.0f;
@@ -37,7 +40,7 @@ static  float d_gauss (float *f1, float *f2, int n, float gamma)
 */
 
 /* chi-squared */
-static  float d_chi_square (float *f1, float *f2, int n)
+  float d_chi_square (float *f1, float *f2, int n)
 {
   int     i;
   float   dist = 0.0f, sf1 = 0.0f, sf2 = 0.0f;
@@ -56,7 +59,7 @@ static  float d_chi_square (float *f1, float *f2, int n)
 }
 
 /* manhattan */
-static  float d_manhattan (float *f1, float *f2, int n)
+  float d_manhattan (float *f1, float *f2, int n)
 {
   int     i;
   float   dist = 0.0f;
@@ -68,7 +71,7 @@ static  float d_manhattan (float *f1, float *f2, int n)
 }
 
 /* camberra */
-static  float d_canberra (float *f1, float *f2, int n)
+  float d_canberra (float *f1, float *f2, int n)
 {
   int     i;
   float   dist = 0.0f, aux;
@@ -84,7 +87,7 @@ static  float d_canberra (float *f1, float *f2, int n)
 }
 
 /* squared chord */
-static  float d_squared_chord (float *f1, float *f2, int n)
+  float d_squared_chord (float *f1, float *f2, int n)
 {
   int     i;
   float   dist = 0.0f, aux1, aux2;
@@ -102,7 +105,7 @@ static  float d_squared_chord (float *f1, float *f2, int n)
 }
 
 /* squared chi-squared */
-static  float d_squared_chi_square (float *f1, float *f2, int n)
+  float d_squared_chi_square (float *f1, float *f2, int n)
 {
   int     i;
   float   dist = 0.0f, aux;
@@ -118,7 +121,7 @@ static  float d_squared_chi_square (float *f1, float *f2, int n)
 }
 
 /* bray curtis */
-static  float d_bray_curtis (float *f1, float *f2, int n)
+  float d_bray_curtis (float *f1, float *f2, int n)
 {
   int     i;
   float   dist = 0.0f, aux;
@@ -131,41 +134,4 @@ static  float d_bray_curtis (float *f1, float *f2, int n)
     }
 
   return (dist);
-}
-
-void
-set_metric (METRIC m)
-{
-  switch (m)
-  {
-    case EUCLIDIAN:
-      arc_weight = d_eucl;
-      break;
-    case LOG_EUCLIDIAN:
-      arc_weight = d_eucl_log;
-      break;
-/*    case GAUSSIAN:
-      arc_weight = d_gauss;
-      break;*/
-    case CHI_SQUARE:
-      arc_weight = d_chi_square;
-      break;
-    case MANHATTAN:
-      arc_weight = d_manhattan;
-      break;
-    case CANBERRA:
-      arc_weight = d_canberra;
-      break;
-    case SQUARED_CHORD:
-      arc_weight = d_squared_chord;
-      break;
-    case SQUARED_CHI_SQUARE:
-      arc_weight = d_squared_chi_square;
-      break;
-    case BRAY_CURTIS:
-      arc_weight = d_bray_curtis;
-      break;
-    default:
-      error ("Undefinied metric");
-  }
 }

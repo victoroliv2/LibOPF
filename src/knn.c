@@ -23,14 +23,11 @@ subgraph_knn_create (subgraph * sg, int knn)
         {
           if (j != i)
             {
-              if (!use_precomputed_distance)
-                d[knn] =
-                  arc_weight (sg->node[i].feat, sg->node[j].feat,
-                                 sg->feat_n);
+              if (!sg->use_precomputed_distance)
+                d[knn] = sg->arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
               else
-                d[knn] =
-                  distance_value[sg->node[i].position][sg->
-                                                          node[j].position];
+                d[knn] = sg->distance_value[sg->node[i].position][sg->node[j].position];
+
               nn[knn] = j;
               k = knn;
               while ((k > 0) && (d[k] < d[k - 1]))
@@ -86,14 +83,11 @@ subgraph_knn_max_distances_evaluate (subgraph * sg, int kmax)
         {
           if (j != i)
             {
-              if (!use_precomputed_distance)
-                d[kmax] =
-                  arc_weight (sg->node[i].feat, sg->node[j].feat,
-                                 sg->feat_n);
+              if (!sg->use_precomputed_distance)
+                d[kmax] = sg->arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
               else
-                d[kmax] =
-                  distance_value[sg->node[i].position][sg->
-                                                          node[j].position];
+                d[kmax] = sg->distance_value[sg->node[i].position][sg->node[j].position];
+
               nn[kmax] = j;
               k = kmax;
               while ((k > 0) && (d[k] < d[k - 1]))
@@ -279,15 +273,11 @@ subgraph_k_max_pdf (subgraph * sg)
       //neighbors yet, i.e. nplatadj = 0 for every node in sg
       for (k = 1; k <= kmax; k++)
         {
-          if (!use_precomputed_distance)
-            dist =
-              arc_weight (sg->node[i].feat, sg->node[adj->elem].feat,
-                             sg->feat_n);
+          if (!sg->use_precomputed_distance)
+            dist = sg->arc_weight (sg->node[i].feat, sg->node[adj->elem].feat, sg->feat_n);
           else
-            dist =
-              distance_value[sg->node[i].position][sg->
-                                                      node[adj->
-                                                           elem].position];
+            dist = sg->distance_value[sg->node[i].position][sg->node[adj->elem].position];
+
           value[i] += exp (-dist / sg->k);
           adj = adj->next;
           nelems++;
@@ -345,12 +335,11 @@ subgraph_k_max_normalized_cut (subgraph * sg)
       for (Saux = sg->node[p].adj, k = 1; k <= nadj; Saux = Saux->next, k++)
         {
           q = Saux->elem;
-          if (!use_precomputed_distance)
-            dist =
-              arc_weight (sg->node[p].feat, sg->node[q].feat, sg->feat_n);
+          if (!sg->use_precomputed_distance)
+            dist = sg->arc_weight (sg->node[p].feat, sg->node[q].feat, sg->feat_n);
           else
-            dist =
-              distance_value[sg->node[p].position][sg->node[q].position];
+            dist = sg->distance_value[sg->node[p].position][sg->node[q].position];
+
           if (dist > 0.0)
             {
               if (sg->node[p].label == sg->node[q].label)

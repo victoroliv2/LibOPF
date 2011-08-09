@@ -5,7 +5,7 @@ OBJ=./obj
 
 CC=gcc
 
-FLAGS=-g -Wall -fPIC
+FLAGS= -O3 -Wall -fPIC
 
 
 INCFLAGS = -I$(INCLUDE)
@@ -44,4 +44,4 @@ aux: $(SRC)/common.c $(SRC)/set.c $(SRC)/realheap.c $(SRC)/linearalloc.c  $(SRC)
 ## Cleaning-up
 
 clean:
-	rm -f $(LIB)/lib*.a; rm -f $(OBJ)/*.o
+	rm -f $(LIB)/lib*.so; rm -f $(OBJ)/*.o

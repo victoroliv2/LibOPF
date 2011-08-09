@@ -10,6 +10,6 @@ void unsupervised_clustering (subgraph * sg);
 /* classification function: it classifies nodes
  * of sg by using the labels created by program
  * opf_cluster in sgtrain */
-void unsupervised_knn_classify (subgraph * sgtrain, subgraph * sg);
+void unsupervised_knn_classify (subgraph * sgtrain, float *feat, int sample_n, int *label);
 
 #endif

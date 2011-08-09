@@ -37,190 +37,6 @@
 #include "knn.h"
 #include "supervised.h"
 
-//Replace errors from evaluating set by non prototypes from training set
-void
-swap_errors_by_non_prototypes (subgraph ** sg_train, subgraph ** sg_eval)
-{
-  int i, j, counter, non_prototypes = 0, error_n = 0;
-
-  for (i = 0; i < (*sg_train)->node_n; i++)
-    {
-      if ((*sg_train)->node[i].pred != NIL)      // non prototype
-        {
-          non_prototypes++;
-        }
-    }
-
-  for (i = 0; i < (*sg_eval)->node_n; i++)
-    if ((*sg_eval)->node[i].label != (*sg_eval)->node[i].label_true)
-      error_n++;
-
-  for (i = 0; i < (*sg_eval)->node_n && non_prototypes > 0 && error_n > 0; i++)
-    {
-      if ((*sg_eval)->node[i].label != (*sg_eval)->node[i].label_true)
-        {
-          counter = non_prototypes;
-          while (counter > 0)
-            {
-              j = random_int (0, (*sg_train)->node_n - 1);
-              if ((*sg_train)->node[j].pred != NIL)
-                {
-                  snode_swap (&((*sg_train)->node[j]), &((*sg_eval)->node[i]));
-                  (*sg_train)->node[j].pred = NIL;
-                  non_prototypes--;
-                  error_n--;
-                  counter = 0;
-                }
-              else
-                counter--;
-            }
-        }
-    }
-}
-
-//mark nodes and the whole path as relevants
-void
-mark_nodes (subgraph * g, int i)
-{
-  while (g->node[i].pred != NIL)
-    {
-      g->node[i].relevant = 1;
-      i = g->node[i].pred;
-    }
-  g->node[i].relevant = 1;
-}
-
-// Remove irrelevant nodes
-void
-remove_irrelevant_nodes (subgraph ** sg)
-{
-  subgraph *newsg = NULL;
-  int i, k, num_of_irrelevants = 0;
-
-  for (i = 0; i < (*sg)->node_n; i++)
-    {
-      if (!(*sg)->node[i].relevant)
-        num_of_irrelevants++;
-    }
-
-  if (num_of_irrelevants > 0)
-    {
-      newsg = subgraph_create ((*sg)->node_n - num_of_irrelevants);
-      newsg->feat_n = (*sg)->feat_n;
-//    for (i=0; i < newsg->node_n; i++)
-//      newsg->node[i].feat = alloc_float(newsg->feat_n);
-
-      k = 0;
-      newsg->label_n = (*sg)->label_n;
-      for (i = 0; i < (*sg)->node_n; i++)
-        {
-          if ((*sg)->node[i].relevant)  // relevant node
-            {
-              snode_copy (&(newsg->node[k]), &((*sg)->node[i]), newsg->feat_n);
-              k++;
-            }
-        }
-      newsg->label_n = (*sg)->label_n;
-      subgraph_destroy (sg);
-      *sg = newsg;
-    }
-}
-
-//Move irrelevant nodes from source graph (src) to destiny graph (dst)
-void
-move_irrelevant_nodes (subgraph ** src, subgraph ** dst)
-{
-  int i, j, k, num_of_irrelevants = 0;
-  subgraph *newsrc = NULL, *newdst = NULL;
-
-  for (i = 0; i < (*src)->node_n; i++)
-    {
-      if (!(*src)->node[i].relevant)
-        num_of_irrelevants++;
-    }
-
-  if (num_of_irrelevants > 0)
-    {
-      newsrc = subgraph_create ((*src)->node_n - num_of_irrelevants);
-      newdst = subgraph_create ((*dst)->node_n + num_of_irrelevants);
-
-      newsrc->feat_n = (*src)->feat_n;
-      newdst->feat_n = (*dst)->feat_n;
-      newsrc->label_n = (*src)->label_n;
-      newdst->label_n = (*dst)->label_n;
-
-//    for (i=0; i < newsrc->node_n; i++)
-//      newsrc->node[i].feat = alloc_float(newsrc->feat_n);
-
-//    for (i=0; i < newdst->node_n; i++)
-//      newdst->node[i].feat = alloc_float(newdst->feat_n);
-
-      for (i = 0; i < (*dst)->node_n; i++)
-        snode_copy (&(newdst->node[i]), &((*dst)->node[i]), newdst->feat_n);
-      j = i;
-
-      k = 0;
-      for (i = 0; i < (*src)->node_n; i++)
-        {
-          if ((*src)->node[i].relevant) // relevant node
-            snode_copy (&(newsrc->node[k++]), &((*src)->node[i]),
-                       newsrc->feat_n);
-          else
-            snode_copy (&(newdst->node[j++]), &((*src)->node[i]),
-                       newdst->feat_n);
-        }
-      subgraph_destroy (&(*src));
-      subgraph_destroy (&(*dst));
-      *src = newsrc;
-      *dst = newdst;
-    }
-}
-
-//Move misclassified nodes from source graph (src) to destiny graph (dst)
-void
-move_misclassified_nodes (subgraph ** src, subgraph ** dst, int *p)
-{
-  int i, j, k, num_of_misclassified = 0;
-  subgraph *newsrc = NULL, *newdst = NULL;
-
-  for (i = 0; i < (*src)->node_n; i++)
-    {
-      if ((*src)->node[i].label_true != (*src)->node[i].label)
-        num_of_misclassified++;
-    }
-  *p = num_of_misclassified;
-
-  if (num_of_misclassified > 0)
-    {
-      newsrc = subgraph_create ((*src)->node_n - num_of_misclassified);
-      newdst = subgraph_create ((*dst)->node_n + num_of_misclassified);
-
-      newsrc->feat_n = (*src)->feat_n;
-      newdst->feat_n = (*dst)->feat_n;
-      newsrc->label_n = (*src)->label_n;
-      newdst->label_n = (*dst)->label_n;
-
-      for (i = 0; i < (*dst)->node_n; i++)
-        snode_copy (&(newdst->node[i]), &((*dst)->node[i]), newdst->feat_n);
-      j = i;
-
-      k = 0;
-      for (i = 0; i < (*src)->node_n; i++)
-        {
-          if ((*src)->node[i].label_true == (*src)->node[i].label)       // misclassified node
-            snode_copy (&(newsrc->node[k++]), &((*src)->node[i]),
-                       newsrc->feat_n);
-          else
-            snode_copy (&(newdst->node[j++]), &((*src)->node[i]),
-                       newdst->feat_n);
-        }
-      subgraph_destroy (&(*src));
-      subgraph_destroy (&(*dst));
-      *src = newsrc;
-      *dst = newdst;
-    }
-}
-
 // Find prototypes by the MST approach
 void
 mst_prototypes (subgraph * sg)
@@ -276,15 +92,11 @@ mst_prototypes (subgraph * sg)
             {
               if (p != q)
                 {
-                  if (!use_precomputed_distance)
-                    weight =
-                      arc_weight (sg->node[p].feat, sg->node[q].feat,
-                                     sg->feat_n);
+                  if (!sg->use_precomputed_distance)
+                    weight = sg->arc_weight (sg->node[p].feat, sg->node[q].feat, sg->feat_n);
                   else
-                    weight =
-                      distance_value[sg->node[p].position][sg->
-                                                              node
-                                                              [q].position];
+                    weight = sg->distance_value[sg->node[p].position][sg-> node[q].position];
+
                   if (weight < path_val[q])
                     {
                       sg->node[q].pred = p;
@@ -299,7 +111,6 @@ mst_prototypes (subgraph * sg)
 
 }
 
-//Training function -----
 void
 supervised_train (subgraph * sg)
 {
@@ -347,15 +158,11 @@ supervised_train (subgraph * sg)
             {
               if (path_val[p] < path_val[q])
                 {
-                  if (!use_precomputed_distance)
-                    weight =
-                      arc_weight (sg->node[p].feat, sg->node[q].feat,
-                                     sg->feat_n);
+                  if (!sg->use_precomputed_distance)
+                    weight = sg->arc_weight (sg->node[p].feat, sg->node[q].feat, sg->feat_n);
                   else
-                    weight =
-                      distance_value[sg->node[p].position][sg->
-                                                              node
-                                                              [q].position];
+                    weight = sg->distance_value[sg->node[p].position][sg->node[q].position];
+
                   tmp = MAX (path_val[p], weight);
                   if (tmp < path_val[q])
                     {
@@ -376,110 +183,43 @@ supervised_train (subgraph * sg)
 
 //Classification function: it simply classifies samples from sg -----
 void
-supervised_classifying (subgraph * sg_train, subgraph * sg)
+supervised_classify (subgraph * sg_train, float *feat, int sample_n, int *label)
 {
-  int i, j, k, l, label = -1;
+  int i, j, k, l, c_label = -1;
   float tmp, weight, minCost;
 
-  for (i = 0; i < sg->node_n; i++)
+  for (i = 0; i < sample_n; i++)
     {
       j = 0;
       k = sg_train->ordered_list_of_nodes[j];
-      if (!use_precomputed_distance)
-        weight =
-          arc_weight (sg_train->node[k].feat, sg->node[i].feat, sg->feat_n);
+
+      if (!sg_train->use_precomputed_distance)
+        weight = sg_train->arc_weight (sg_train->node[k].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
       else
-        weight =
-          distance_value[sg_train->node[k].position][sg->node[i].position];
+        weight = sg_train->distance_value[sg_train->node[k].position][i];
 
       minCost = MAX (sg_train->node[k].path_val, weight);
-      label = sg_train->node[k].label;
+      c_label = sg_train->node[k].label;
 
       while ((j < sg_train->node_n - 1) &&
-             (minCost >
-              sg_train->node[sg_train->ordered_list_of_nodes[j + 1]].path_val))
+             (minCost > sg_train->node[sg_train->ordered_list_of_nodes[j + 1]].path_val))
         {
-
           l = sg_train->ordered_list_of_nodes[j + 1];
 
-          if (!use_precomputed_distance)
-            weight =
-              arc_weight (sg_train->node[l].feat, sg->node[i].feat,
-                             sg->feat_n);
+          if (!sg_train->use_precomputed_distance)
+            weight = sg_train->arc_weight (sg_train->node[k].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
           else
-            weight =
-              distance_value[sg_train->node[l].position][sg->
-                                                           node[i].position];
+            weight = sg_train->distance_value[sg_train->node[k].position][i];
+
           tmp = MAX (sg_train->node[l].path_val, weight);
           if (tmp < minCost)
             {
               minCost = tmp;
-              label = sg_train->node[l].label;
+              c_label = sg_train->node[l].label;
             }
           j++;
           k = l;
         }
-      sg->node[i].label = label;
+      label[i] = c_label;
     }
-}
-
-
-//Learning function: it executes the learning procedure for CompGraph replacing the
-//missclassified samples in the evaluation set by non prototypes from
-//training set -----
-void
-supervised_learn (subgraph ** sg_train, subgraph ** sg_eval)
-{
-  int i = 0, iterations = 10;
-  float Acc = FLT_MIN, AccAnt = FLT_MIN, MaxAcc = FLT_MIN, delta;
-  subgraph *sg = NULL;
-
-  do
-    {
-      AccAnt = Acc;
-      fflush (stdout);
-      fprintf (stdout, "\nrunning iteration ... %d ", i);
-      supervised_train (*sg_train);
-      supervised_classify (*sg_train, *sg_eval);
-      Acc = subgraph_accuracy (*sg_eval);
-      if (Acc > MaxAcc)
-        {
-          MaxAcc = Acc;
-          if (sg != NULL)
-            subgraph_destroy (&sg);
-          sg = subgraph_copy (*sg_train);
-        }
-      swap_errors_by_non_prototypes (&(*sg_train), &(*sg_eval));
-      fflush (stdout);
-      fprintf (stdout, "accuracy in the evaluation set: %.2f %%\n",
-               Acc * 100);
-      i++;
-      delta = fabs (Acc - AccAnt);
-    }
-  while ((delta > 0.0001) && (i <= iterations));
-  subgraph_destroy (&(*sg_train));
-  *sg_train = sg;
-}
-
-
-void
-supervised_agglomerative_learn (subgraph ** sg_train, subgraph ** sg_eval)
-{
-  int n, i = 1;
-  float Acc;
-
-  /*while  there exists misclassified samples in sg_eval */
-  do
-    {
-      fflush (stdout);
-      fprintf (stdout, "\nrunning iteration ... %d ", i++);
-      n = 0;
-      supervised_train (*sg_train);
-      supervised_classify (*sg_train, *sg_eval);
-      Acc = subgraph_accuracy (*sg_eval);
-      fprintf (stdout, " %f", Acc * 100);
-      move_misclassified_nodes (&(*sg_eval), &(*sg_train), &n);
-      fprintf (stdout, "\nMisclassified nodes: %d", n);
-    }
-  while (n);
 }

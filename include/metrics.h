@@ -1,32 +1,26 @@
-#ifndef __METRICS_H__
-#define __METRICS_H__
-
-#include "math.h"
-#include "common.h"
+#ifndef _METRICS_H_
+#define _METRICS_H_
 
 typedef float (*arc_weight_function) (float *f1, float *f2, int n);
 
-typedef enum
-{
-  EUCLIDIAN          = 0,
-  LOG_EUCLIDIAN      = 1,
-  /*GAUSSIAN           = 2,*/
-  CHI_SQUARE         = 2,
-  MANHATTAN          = 3,
-  CANBERRA           = 4,
-  SQUARED_CHORD      = 5,
-  SQUARED_CHI_SQUARE = 6,
-  BRAY_CURTIS        = 7
-} METRIC;
-
 #ifdef __METRICS_MAIN__
-arc_weight_function arc_weight = NULL;
-int use_precomputed_distance = FALSE;
-float **distance_value = NULL;
+float d_eucl                (float *f1, float *f2, int n);
+float d_eucl_log            (float *f1, float *f2, int n);
+float d_chi_square          (float *f1, float *f2, int n);
+float d_manhattan           (float *f1, float *f2, int n);
+float d_canberra            (float *f1, float *f2, int n);
+float d_squared_chord       (float *f1, float *f2, int n);
+float d_squared_chi_square  (float *f1, float *f2, int n);
+float d_bray_curtis         (float *f1, float *f2, int n);
 #else
-extern arc_weight_function arc_weight;
-extern int use_precomputed_distance;
-extern float **distance_value;
+extern float d_eucl                (float *f1, float *f2, int n);
+extern float d_eucl_log            (float *f1, float *f2, int n);
+extern float d_chi_square          (float *f1, float *f2, int n);
+extern float d_manhattan           (float *f1, float *f2, int n);
+extern float d_canberra            (float *f1, float *f2, int n);
+extern float d_squared_chord       (float *f1, float *f2, int n);
+extern float d_squared_chi_square  (float *f1, float *f2, int n);
+extern float d_bray_curtis         (float *f1, float *f2, int n);
 #endif
 
-#endif  /* __METRICS_H__ */
+#endif

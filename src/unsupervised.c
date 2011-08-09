@@ -105,27 +105,25 @@ unsupervised_clustering (subgraph * sg)
 // the OPF-clustering labels from sg_train
 
 void
-unsupervised_knn_classify (subgraph * sg_train, subgraph * sg)
+unsupervised_knn_classify (subgraph * sg_train, float *feat, int sample_n, int *label)
 {
   int i, j, k;
   float weight;
 
-  for (i = 0; i < sg->node_n; i++)
+  for (i = 0; i < sample_n; i++)
     {
       for (j = 0; (j < sg_train->node_n); j++)
         {
           k = sg_train->ordered_list_of_nodes[j];
-          if (!use_precomputed_distance)
-            weight =
-              arc_weight (sg_train->node[k].feat, sg->node[i].feat,
-                             sg->feat_n);
+
+          if (!sg_train->use_precomputed_distance)
+            weight = sg_train->arc_weight (sg_train->node[k].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
           else
-            weight =
-              distance_value[sg_train->node[k].position][sg->
-                                                           node[i].position];
+            weight = sg_train->distance_value[sg_train->node[k].position][i];
+
           if (weight <= sg_train->node[k].radius)
             {
-              sg->node[i].label = sg_train->node[k].label;
+              label[i] = sg_train->node[k].label;
               break;
             }
         }

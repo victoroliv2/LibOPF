@@ -114,7 +114,7 @@ real_heap_is_empty (real_heap * H)
 }
 
 real_heap *
-create_real_heap (int n, float *cost)
+real_heap_create (int n, float *cost)
 {
   real_heap *H = NULL;
   int i;
