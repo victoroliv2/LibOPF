@@ -8,41 +8,41 @@
 #define HEAP_LEFTSON(i)  (2 * i + 1)
 #define HEAP_RIGHTSON(i) (2 * i + 2)
 
-typedef enum
+enum COLOR
 {
   COLOR_WHITE = 0,
   COLOR_GRAY  = 1,
   COLOR_BLACK = 2
-} COLOR;
+};
 
 
-typedef enum
+enum REMOVAL_POLICY
 {
   REMOVAL_POLICY_MIN = 0,
   REMOVAL_POLICY_MAX = 1
-} REMOVAL_POLICY;
+};
 
-typedef struct
+struct real_heap
 {
   float *cost;
-  COLOR *color;
+  enum COLOR *color;
   int   *pixel;
   int   *pos;
   int    last;
   int    n;
-  REMOVAL_POLICY removal_policy;
-} real_heap;
+  enum REMOVAL_POLICY removal_policy;
+};
 
-real_heap *real_heap_create             (int n, float *cost);
-void       real_heap_set_removal_policy (real_heap  * h, REMOVAL_POLICY policy);
-int        real_heap_is_full            (real_heap  * h);
-int        real_heap_is_empty           (real_heap  * h);
-void       real_heap_destroy            (real_heap ** h);
-int        real_heap_insert             (real_heap  * h, int  pixel);
-int        real_heap_remove             (real_heap  * h, int *pixel);
-void       real_heap_update             (real_heap  * h, int p, float value);
-void       real_heap_go_up              (real_heap  * h, int i);
-void       real_heap_go_down            (real_heap  * h, int i);
-void       real_heap_reset              (real_heap  * h);
+struct     real_heap *real_heap_create  (int n, float *cost);
+void       real_heap_set_removal_policy (struct real_heap  * h, enum REMOVAL_POLICY policy);
+int        real_heap_is_full            (struct real_heap  * h);
+int        real_heap_is_empty           (struct real_heap  * h);
+void       real_heap_destroy            (struct real_heap ** h);
+int        real_heap_insert             (struct real_heap  * h, int  pixel);
+int        real_heap_remove             (struct real_heap  * h, int *pixel);
+void       real_heap_update             (struct real_heap  * h, int p, float value);
+void       real_heap_go_up              (struct real_heap  * h, int i);
+void       real_heap_go_down            (struct real_heap  * h, int i);
+void       real_heap_reset              (struct real_heap  * h);
 
 #endif

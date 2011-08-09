@@ -19,11 +19,11 @@
 #include "set.h"
 
 void
-set_insert (set ** s, int elem)
+set_insert (struct set ** s, int elem)
 {
-  set *p = NULL;
+  struct set *p = NULL;
 
-  p = (set *) calloc (1, sizeof (set));
+  p = (struct set *) calloc (1, sizeof (struct set));
   if (p == NULL)
     error (LOG_OUT_OF_MEMORY);
   if (*s == NULL)
@@ -40,9 +40,9 @@ set_insert (set ** s, int elem)
 }
 
 int
-set_remove (set ** s)
+set_remove (struct set ** s)
 {
-  set *p;
+  struct set *p;
   int elem = NIL;
 
   if (*s != NULL)
@@ -58,9 +58,9 @@ set_remove (set ** s)
 
 
 int
-set_get_size (set * s)
+set_get_size (struct set * s)
 {
-  set *aux;
+  struct set *aux;
   int size = 0;
 
   aux = s;
@@ -72,12 +72,12 @@ set_get_size (set * s)
   return size;
 }
 
-set *
-set_clone (set * s)
+struct set *
+set_clone (struct set * s)
 {
-  set *tmp = NULL;
-  set *C = NULL;
-  set **tail = NULL;
+  struct set *tmp = NULL;
+  struct set *C = NULL;
+  struct set **tail = NULL;
   int p;
 
   tmp = s;
@@ -85,7 +85,7 @@ set_clone (set * s)
   if (tmp != NULL)
     {
       p = tmp->elem;
-      C = (set *) calloc (1, sizeof (set));
+      C = (struct set *) calloc (1, sizeof (struct set));
       C->elem = p;
       C->next = NULL;
       tail = &(C->next);
@@ -95,7 +95,7 @@ set_clone (set * s)
   while (tmp != NULL)
     {
       p = tmp->elem;
-      *tail = (set *) calloc (1, sizeof (set));
+      *tail = (struct set *) calloc (1, sizeof (struct set));
       (*tail)->elem = p;
       (*tail)->next = NULL;
       tail = &((*tail)->next);
@@ -105,9 +105,9 @@ set_clone (set * s)
 }
 
 void
-set_destroy (set ** s)
+set_destroy (struct set ** s)
 {
-  set *p;
+  struct set *p;
   while (*s != NULL)
     {
       p = *s;

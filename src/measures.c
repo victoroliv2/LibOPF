@@ -3,10 +3,10 @@
 
 // Normalized cut
 float
-subgraph_normalized_cut (subgraph * sg)
+subgraph_normalized_cut (struct subgraph * sg)
 {
   int l, p, q;
-  set *Saux;
+  struct set *Saux;
   float ncut, dist;
   float *acumIC;                //acumulate weights inside each class
   float *acumEC;                //acumulate weights between the class and a distinct one

@@ -5,19 +5,19 @@
 #include "set.h"
 #include "metrics.h"
 
-typedef enum
+enum STATUS
 {
   STATUS_NOTHING   = 0,
   STATUS_PROTOTYPE = 1
-} STATUS;
+};
 
-typedef enum
+enum RELEVT
 {
   RELEVT_NOT = 0,
   RELEVT_IS  = 1
-} RELEVT;
+};
 
-typedef struct
+struct snode
 {
   float   path_val;             /* path value                                           */
   float   dens;                 /* node density                                         */
@@ -30,8 +30,8 @@ typedef struct
   int     label_true;           /* true label if it is known                            */
   int     position;             /* index in the feature space                           */
   float  *feat;                 /* feature vector                                       */
-  STATUS  status;               /* 0 - nothing, 1 - prototype                           */
-  RELEVT  relevant;             /* 0 - irrelevant, 1 - relevant                         */
+  enum STATUS  status;          /* 0 - nothing, 1 - prototype                           */
+  enum RELEVT  relevant;        /* 0 - irrelevant, 1 - relevant                         */
 
   int     nplatadj;             /* holds the amount of adjacent nodes on plateaus
                                  * it is used to optimize opf_bestkmincut
@@ -41,14 +41,14 @@ typedef struct
                                  * or until k+nplatadj is reached
                                  */
 
-  set    *adj;                  /* adjacency list for knn graphs */
-} snode;
+  struct set *adj;               /* adjacency list for knn graphs */
+};
 
-void snode_copy (snode * dest, snode * src, int feat_n); /* copy nodes */
-void snode_swap (snode * a, snode * b);                  /* swap nodes */
+void snode_copy (struct snode * dest, struct snode * src, int feat_n); /* copy nodes */
+void snode_swap (struct snode * a, struct snode * b);                  /* swap nodes */
 
 
-typedef enum
+enum METRIC
 {
   EUCLIDIAN          = 0,
   LOG_EUCLIDIAN      = 1,
@@ -59,11 +59,11 @@ typedef enum
   SQUARED_CHORD      = 5,
   SQUARED_CHI_SQUARE = 6,
   BRAY_CURTIS        = 7
-} METRIC;
+};
 
-typedef struct
+struct subgraph
 {
-  snode  *node;                  /* nodes of the image/scene subgraph                   */
+  struct snode  *node;           /* nodes of the image/scene subgraph                   */
   int     node_n;                /* number of nodes                                     */
   int     feat_n;                /* number of features                                  */
   int     k_best;                /* number of adjacent nodes                            */
@@ -77,12 +77,12 @@ typedef struct
                                   */
 
   int use_precomputed_distance;
-  arc_weight_function arc_weight;
+  float (*arc_weight) (float *f1, float *f2, int n);
   float **distance_value;
-} subgraph;
+};
 
-subgraph * subgraph_create       (int node_n);     /* allocates nodes without features        */
-void       subgraph_destroy      (subgraph ** sg); /* deallocates memory for subgraph         */
-void       subgraph_set_metric   (subgraph *sg, METRIC m);
-void       subgraph_pdf_evaluate (subgraph * sg);
+struct subgraph * subgraph_create       (int node_n);     /* allocates nodes without features        */
+void       subgraph_destroy      (struct subgraph ** sg); /* deallocates memory for subgraph         */
+void       subgraph_set_metric   (struct subgraph *sg, enum METRIC m);
+void       subgraph_pdf_evaluate (struct subgraph * sg);
 #endif /* _SUBGRAPH_H_ */

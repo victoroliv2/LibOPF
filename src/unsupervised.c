@@ -10,15 +10,15 @@
 //pre-computed best k.
 
 void
-unsupervised_clustering (subgraph * sg)
+unsupervised_clustering (struct subgraph * sg)
 {
-  set *adj_i, *adj_j;
+  struct set *adj_i, *adj_j;
   char insert_i;
   int i, j;
   int p, q, l;
   float tmp, *path_val = NULL;
-  real_heap *Q = NULL;
-  set *Saux = NULL;
+  struct real_heap *Q = NULL;
+  struct set *Saux = NULL;
 
   //   Add arcs to guarantee symmetry on plateaus
   for (i = 0; i < sg->node_n; i++)
@@ -105,7 +105,7 @@ unsupervised_clustering (subgraph * sg)
 // the OPF-clustering labels from sg_train
 
 void
-unsupervised_knn_classify (subgraph * sg_train, float *feat, int sample_n, int *label)
+unsupervised_knn_classify (struct subgraph * sg_train, float *feat, int sample_n, int *label)
 {
   int i, j, k;
   float weight;

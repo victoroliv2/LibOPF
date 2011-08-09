@@ -3,16 +3,16 @@
 
 #include "common.h"
 
-typedef struct _set
+struct set
 {
   int elem;
-  struct _set *next;
-} set;
+  struct set *next;
+};
 
-void  set_insert   (set **s, int elem);
-int   set_remove   (set **s);
-int   set_get_size (set  *s);
-set  *set_clone    (set  *s);
-void  set_destroy  (set **s);
+void        set_insert   (struct set **s, int elem);
+int         set_remove   (struct set **s);
+int         set_get_size (struct set  *s);
+struct set *set_clone    (struct set  *s);
+void        set_destroy  (struct set **s);
 
 #endif

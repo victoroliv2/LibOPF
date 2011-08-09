@@ -3,6 +3,6 @@
 
 #include "subgraph.h"
 
-float   subgraph_normalized_cut   (subgraph * sg);
+float   subgraph_normalized_cut   (struct subgraph * sg);
 
 #endif

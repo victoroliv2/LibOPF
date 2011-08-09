@@ -19,7 +19,7 @@
 #include "realheap.h"
 
 void
-real_heap_set_removal_policy (real_heap * H, REMOVAL_POLICY policy)
+real_heap_set_removal_policy (struct real_heap * H, enum REMOVAL_POLICY policy)
 {
   if (H->removal_policy != policy)
     {
@@ -29,7 +29,7 @@ real_heap_set_removal_policy (real_heap * H, REMOVAL_POLICY policy)
 }
 
 void
-real_heap_go_up (real_heap * H, int i)
+real_heap_go_up (struct real_heap * H, int i)
 {
   int j = HEAP_DAD (i);
 
@@ -60,7 +60,7 @@ real_heap_go_up (real_heap * H, int i)
 }
 
 void
-real_heap_go_down (real_heap * H, int i)
+real_heap_go_down (struct real_heap * H, int i)
 {
   int j, left = HEAP_LEFTSON (i), right = HEAP_RIGHTSON (i);
 
@@ -96,7 +96,7 @@ real_heap_go_down (real_heap * H, int i)
 }
 
 int
-real_heap_is_full (real_heap * H)
+real_heap_is_full (struct real_heap * H)
 {
   if (H->last == (H->n - 1))
     return 1;
@@ -105,7 +105,7 @@ real_heap_is_full (real_heap * H)
 }
 
 int
-real_heap_is_empty (real_heap * H)
+real_heap_is_empty (struct real_heap * H)
 {
   if (H->last == NIL)
     return 1;
@@ -113,10 +113,10 @@ real_heap_is_empty (real_heap * H)
     return 0;
 }
 
-real_heap *
+struct real_heap *
 real_heap_create (int n, float *cost)
 {
-  real_heap *H = NULL;
+  struct real_heap *H = NULL;
   int i;
 
   if (cost == NULL)
@@ -126,12 +126,12 @@ real_heap_create (int n, float *cost)
       return NULL;
     }
 
-  H = (real_heap *) malloc (sizeof (real_heap));
+  H = (struct real_heap *) malloc (sizeof (struct real_heap));
   if (H != NULL)
     {
       H->n = n;
       H->cost = cost;
-      H->color = (COLOR *) malloc (sizeof (COLOR) * n);
+      H->color = (enum COLOR *) malloc (sizeof (enum COLOR) * n);
       H->pixel = (int *) malloc (sizeof (int) * n);
       H->pos   = (int *) malloc (sizeof (int) * n);
       H->last = NIL;
@@ -152,9 +152,9 @@ real_heap_create (int n, float *cost)
 }
 
 void
-real_heap_destroy (real_heap ** H)
+real_heap_destroy (struct real_heap ** H)
 {
-  real_heap *aux = *H;
+  struct real_heap *aux = *H;
   if (aux != NULL)
     {
       if (aux->pixel != NULL)
@@ -169,7 +169,7 @@ real_heap_destroy (real_heap ** H)
 }
 
 int
-real_heap_insert (real_heap * H, int pixel)
+real_heap_insert (struct real_heap * H, int pixel)
 {
   if (!real_heap_is_full (H))
     {
@@ -185,7 +185,7 @@ real_heap_insert (real_heap * H, int pixel)
 }
 
 int
-real_heap_remove (real_heap * H, int *pixel)
+real_heap_remove (struct real_heap * H, int *pixel)
 {
   if (!real_heap_is_empty (H))
     {
@@ -205,7 +205,7 @@ real_heap_remove (real_heap * H, int *pixel)
 
 
 void
-real_heap_update (real_heap * H, int p, float value)
+real_heap_update (struct real_heap * H, int p, float value)
 {
   H->cost[p] = value;
 
@@ -221,7 +221,7 @@ real_heap_update (real_heap * H, int p, float value)
 }
 
 void
-real_heap_reset (real_heap * H)
+real_heap_reset (struct real_heap * H)
 {
   int i;
 

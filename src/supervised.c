@@ -39,11 +39,11 @@
 
 // Find prototypes by the MST approach
 void
-mst_prototypes (subgraph * sg)
+mst_prototypes (struct subgraph * sg)
 {
   int p, q;
   float weight;
-  real_heap *Q = NULL;
+  struct real_heap *Q = NULL;
   float *path_val = NULL;
   int pred;
   float nproto;
@@ -112,11 +112,11 @@ mst_prototypes (subgraph * sg)
 }
 
 void
-supervised_train (subgraph * sg)
+supervised_train (struct subgraph * sg)
 {
   int p, q, i;
   float tmp, weight;
-  real_heap *Q = NULL;
+  struct real_heap *Q = NULL;
   float *path_val = NULL;
 
   // compute optimum prototypes
@@ -183,7 +183,7 @@ supervised_train (subgraph * sg)
 
 //Classification function: it simply classifies samples from sg -----
 void
-supervised_classify (subgraph * sg_train, float *feat, int sample_n, int *label)
+supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, int *label)
 {
   int i, j, k, l, c_label = -1;
   float tmp, weight, minCost;

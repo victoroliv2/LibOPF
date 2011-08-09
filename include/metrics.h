@@ -1,8 +1,6 @@
 #ifndef _METRICS_H_
 #define _METRICS_H_
 
-typedef float (*arc_weight_function) (float *f1, float *f2, int n);
-
 #ifdef __METRICS_MAIN__
 float d_eucl                (float *f1, float *f2, int n);
 float d_eucl_log            (float *f1, float *f2, int n);

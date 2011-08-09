@@ -27,7 +27,7 @@
 /*----------- Constructor and destructor ------------------------*/
 //Copy nodes
 void
-snode_copy (snode * dest, snode * src, int feat_n)
+snode_copy (struct snode * dest, struct snode * src, int feat_n)
 {
   dest->feat = alloc_float (feat_n);
   memcpy (dest->feat, src->feat, feat_n * sizeof (float));
@@ -48,9 +48,9 @@ snode_copy (snode * dest, snode * src, int feat_n)
 
 //Swap nodes
 void
-snode_swap (snode * a, snode * b)
+snode_swap (struct snode * a, struct snode * b)
 {
-  snode tmp;
+  struct snode tmp;
 
   tmp = *a;
   *a = *b;
@@ -58,14 +58,14 @@ snode_swap (snode * a, snode * b)
 }
 
 // Allocate nodes without features
-subgraph *
+struct subgraph *
 subgraph_create (int node_n)
 {
-  subgraph *sg = (subgraph *) calloc (1, sizeof (subgraph));
+  struct subgraph *sg = (struct subgraph *) calloc (1, sizeof (struct subgraph));
   int i;
 
   sg->node_n = node_n;
-  sg->node = (snode *) calloc (node_n, sizeof (snode));
+  sg->node = (struct snode *) calloc (node_n, sizeof (struct snode));
   sg->ordered_list_of_nodes = (int *) calloc (node_n, sizeof (int));
 
   if (sg->node == NULL)
@@ -82,7 +82,7 @@ subgraph_create (int node_n)
 
 // Deallocate memory for subgraph
 void
-subgraph_destroy (subgraph ** sg)
+subgraph_destroy (struct subgraph ** sg)
 {
   int i;
 
@@ -101,7 +101,7 @@ subgraph_destroy (subgraph ** sg)
 }
 
 void
-subgraph_set_metric (subgraph *sg, METRIC m)
+subgraph_set_metric (struct subgraph *sg, enum METRIC m)
 {
   switch (m)
   {
@@ -139,12 +139,12 @@ subgraph_set_metric (subgraph *sg, METRIC m)
 
 // subgraph_pdf_evaluate computation
 void
-subgraph_pdf_evaluate (subgraph * sg)
+subgraph_pdf_evaluate (struct subgraph * sg)
 {
   int i, nelems;
   double dist;
   float *value = alloc_float (sg->node_n);
-  set *adj = NULL;
+  struct set *adj = NULL;
 
   sg->k = (2.0 * (float) sg->df / 9.0);
   sg->dens_min = FLT_MAX;

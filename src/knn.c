@@ -5,7 +5,7 @@
 
 // Create adjacent list in subgraph: a knn graph
 void
-subgraph_knn_create (subgraph * sg, int knn)
+subgraph_knn_create (struct subgraph * sg, int knn)
 {
   int i, j, l, k;
   float dist;
@@ -65,7 +65,7 @@ subgraph_knn_create (subgraph * sg, int knn)
 // Returns an array with the maximum distances
 // for each k=1,2,...,kmax
 float *
-subgraph_knn_max_distances_evaluate (subgraph * sg, int kmax)
+subgraph_knn_max_distances_evaluate (struct subgraph * sg, int kmax)
 {
   int i, j, l, k;
   float dist;
@@ -131,7 +131,7 @@ subgraph_knn_max_distances_evaluate (subgraph * sg, int kmax)
 
 // Destroy Arcs
 void
-subgraph_knn_destroy (subgraph * sg)
+subgraph_knn_destroy (struct subgraph * sg)
 {
   int i;
 
@@ -144,16 +144,16 @@ subgraph_knn_destroy (subgraph * sg)
 
 // OPFClustering computation only for sg->k_best neighbors
 void
-subgraph_k_max_clustering (subgraph * sg)
+subgraph_k_max_clustering (struct subgraph * sg)
 {
-  set *adj_i, *adj_j;
+  struct set *adj_i, *adj_j;
   char insert_i;
   int i, j;
   int p, q, l, ki, kj;
   const int kmax = sg->k_best;
   float tmp, *path_val = NULL;
-  real_heap *Q = NULL;
-  set *Saux = NULL;
+  struct real_heap *Q = NULL;
+  struct set *Saux = NULL;
 
   //   Add arcs to guarantee symmetry on plateaus
   for (i = 0; i < sg->node_n; i++)
@@ -250,13 +250,13 @@ subgraph_k_max_clustering (subgraph * sg)
 
 // PDF computation only for sg->k_best neighbors
 void
-subgraph_k_max_pdf (subgraph * sg)
+subgraph_k_max_pdf (struct subgraph * sg)
 {
   int i, nelems;
   const int kmax = sg->k_best;
   double dist;
   float *value = alloc_float (sg->node_n);
-  set *adj = NULL;
+  struct set *adj = NULL;
 
   sg->k = (2.0 * (float) sg->df / 9.0);
 
@@ -314,11 +314,11 @@ subgraph_k_max_pdf (subgraph * sg)
 
 // Normalized cut computed only for sg->k_best neighbors
 float
-subgraph_k_max_normalized_cut (subgraph * sg)
+subgraph_k_max_normalized_cut (struct subgraph * sg)
 {
   int l, p, q, k;
   const int kmax = sg->k_best;
-  set *Saux;
+  struct set *Saux;
   float ncut, dist;
   float *acumIC;                //acumulate weights inside each class
   float *acumEC;                //acumulate weights between the class and a distinct one
@@ -366,7 +366,7 @@ subgraph_k_max_normalized_cut (subgraph * sg)
 
 // Estimate the best k by minimum cut
 void
-subgraph_best_k_min_cut (subgraph * sg, int kmin, int kmax)
+subgraph_best_k_min_cut (struct subgraph * sg, int kmin, int kmax)
 {
   int k, k_best = kmax;
   float mincut = FLT_MAX, nc;
