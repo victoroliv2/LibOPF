@@ -75,14 +75,15 @@ struct subgraph
   int    *ordered_list_of_nodes; /* store the list of nodes in the increasing order
                                   * of cost for speeding up supervised classification.
                                   */
-
+  float *feat_data; /* memory pointer to all features data */
   int use_precomputed_distance;
   float (*arc_weight) (float *f1, float *f2, int n);
   float **distance_value;
 };
 
 struct subgraph * subgraph_create       (int node_n);     /* allocates nodes without features        */
-void       subgraph_destroy      (struct subgraph ** sg); /* deallocates memory for subgraph         */
-void       subgraph_set_metric   (struct subgraph *sg, enum METRIC m);
-void       subgraph_pdf_evaluate (struct subgraph * sg);
+void              subgraph_destroy      (struct subgraph ** sg); /* deallocates memory for subgraph         */
+int               subgraph_set_data     (struct subgraph *sg, float *feat, int *label, int node_n, int feat_n);
+void              subgraph_set_metric   (struct subgraph *sg, enum METRIC m);
+void              subgraph_pdf_evaluate (struct subgraph * sg);
 #endif /* _SUBGRAPH_H_ */

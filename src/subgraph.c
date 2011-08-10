@@ -64,12 +64,13 @@ subgraph_create (int node_n)
   struct subgraph *sg = (struct subgraph *) calloc (1, sizeof (struct subgraph));
   int i;
 
+  if (!sg) return NULL;
+
   sg->node_n = node_n;
   sg->node = (struct snode *) calloc (node_n, sizeof (struct snode));
   sg->ordered_list_of_nodes = (int *) calloc (node_n, sizeof (int));
 
-  if (sg->node == NULL)
-    error (LOG_OUT_OF_MEMORY);
+  if (!(sg->node && sg->ordered_list_of_nodes)) return NULL;
 
   for (i = 0; i < sg->node_n; i++)
     {
@@ -88,6 +89,9 @@ subgraph_destroy (struct subgraph ** sg)
 
   if ((*sg) != NULL)
     {
+      if ((*sg)->feat_data)
+        free ((*sg)->feat_data);
+
       for (i = 0; i < (*sg)->node_n; i++)
         {
           if ((*sg)->node[i].adj != NULL)
@@ -98,6 +102,23 @@ subgraph_destroy (struct subgraph ** sg)
       free ((*sg));
       *sg = NULL;
     }
+}
+
+int
+subgraph_set_data (struct subgraph *sg, float *feat, int *label, int node_n, int feat_n)
+{
+  int i;
+  sg->feat_data = (float *)malloc (sg->node_n*sizeof(float));
+
+  if (!sg->feat_data) return FALSE;
+
+  for (i = 0; i < sg->node_n; i++)
+    {
+      sg->node[i].feat  = &sg->feat_data[i*sg->feat_n];
+      sg->node[i].label = label[i];
+    }
+
+  return TRUE;
 }
 
 void

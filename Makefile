@@ -7,7 +7,6 @@ CC=gcc
 
 FLAGS= -O3 -Wall -fPIC
 
-
 INCFLAGS = -I$(INCLUDE)
 
 all: libopf
@@ -29,6 +28,7 @@ $(OBJ)/knn.o \
 $(OBJ)/supervised.o \
 $(OBJ)/unsupervised.o
 
+
 aux: $(SRC)/common.c $(SRC)/set.c $(SRC)/realheap.c $(SRC)/linearalloc.c  $(SRC)/metrics.c  $(SRC)/measures.c $(SRC)/subgraph.c $(SRC)/knn.c $(SRC)/supervised.c $(SRC)/unsupervised.c
 	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/common.c       -o $(OBJ)/common.o
 	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/set.c          -o $(OBJ)/set.o
@@ -45,3 +45,7 @@ aux: $(SRC)/common.c $(SRC)/set.c $(SRC)/realheap.c $(SRC)/linearalloc.c  $(SRC)
 
 clean:
 	rm -f $(LIB)/lib*.so; rm -f $(OBJ)/*.o
+
+bindings:
+	cython libopf_py.pyx
+	$(CC) -shared -pthread -fPIC -fwrapv -O2 -Wall -fno-strict-aliasing $(INCFLAGS) -I/usr/include/python2.7 -L$(LIB) -lopf -o $(LIB)/libopf_py.so libopf_py.c
