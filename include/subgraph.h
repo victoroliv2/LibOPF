@@ -83,7 +83,7 @@ struct subgraph
 
 struct subgraph * subgraph_create       (int node_n);     /* allocates nodes without features        */
 void              subgraph_destroy      (struct subgraph ** sg); /* deallocates memory for subgraph         */
-int               subgraph_set_data     (struct subgraph *sg, float *feat, int *label, int node_n, int feat_n);
+int               subgraph_set_data     (struct subgraph *sg, float *feat, int *label, int feat_n);
 void              subgraph_set_metric   (struct subgraph *sg, enum METRIC m);
 void              subgraph_pdf_evaluate (struct subgraph * sg);
 #endif /* _SUBGRAPH_H_ */

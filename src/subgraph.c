@@ -62,9 +62,13 @@ struct subgraph *
 subgraph_create (int node_n)
 {
   struct subgraph *sg = (struct subgraph *) calloc (1, sizeof (struct subgraph));
+
   int i;
 
   if (!sg) return NULL;
+
+  // zero for sanity!
+  memset (sg, 0, sizeof (struct subgraph));
 
   sg->node_n = node_n;
   sg->node = (struct snode *) calloc (node_n, sizeof (struct snode));
@@ -105,17 +109,24 @@ subgraph_destroy (struct subgraph ** sg)
 }
 
 int
-subgraph_set_data (struct subgraph *sg, float *feat, int *label, int node_n, int feat_n)
+subgraph_set_data (struct subgraph *sg, float *feat, int *label, int feat_n)
 {
   int i;
-  sg->feat_data = (float *)malloc (sg->node_n*sizeof(float));
+  sg->feat_n = feat_n;
+
+  sg->feat_data = (float *)malloc (sg->node_n*sg->feat_n*sizeof(float));
 
   if (!sg->feat_data) return FALSE;
 
+  // 0xFF (nan) for sanity!
+  memset (sg->feat_data, 0xFF, sg->node_n*sg->feat_n*sizeof(float));
+
   for (i = 0; i < sg->node_n; i++)
     {
-      sg->node[i].feat  = &sg->feat_data[i*sg->feat_n];
-      sg->node[i].label = label[i];
+      float *chunk = &sg->feat_data[i*sg->feat_n];
+      memcpy (chunk, &feat[i*sg->feat_n], sg->feat_n*sizeof(float));
+      sg->node[i].feat  = chunk;
+      sg->node[i].label_true = label[i];
     }
 
   return TRUE;
@@ -124,6 +135,8 @@ subgraph_set_data (struct subgraph *sg, float *feat, int *label, int node_n, int
 void
 subgraph_set_metric (struct subgraph *sg, enum METRIC m)
 {
+  sg->use_precomputed_distance = FALSE;
+
   switch (m)
   {
     case EUCLIDIAN:
@@ -194,8 +207,6 @@ subgraph_pdf_evaluate (struct subgraph * sg)
       if (value[i] > sg->dens_max)
         sg->dens_max = value[i];
     }
-
-  //  printf("df=%f,K1=%f,K2=%f,dens_min=%f, dens_max=%f\n",sg->df,sg->K1,sg->K2,sg->dens_min,sg->dens_max);
 
   if (sg->dens_min == sg->dens_max)
     {

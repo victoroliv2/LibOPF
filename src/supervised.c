@@ -55,7 +55,7 @@ mst_prototypes (struct subgraph * sg)
   for (p = 0; p < sg->node_n; p++)
     {
       path_val[p] = FLT_MAX;
-      sg->node[p].status = 0;
+      sg->node[p].status = STATUS_NOTHING;
     }
 
   path_val[0] = 0;
@@ -149,6 +149,7 @@ supervised_train (struct subgraph * sg)
       real_heap_remove (Q, &p);
 
       sg->ordered_list_of_nodes[i] = p;
+
       i++;
       sg->node[p].path_val = path_val[p];
 
@@ -185,31 +186,34 @@ supervised_train (struct subgraph * sg)
 void
 supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, int *label)
 {
-  int i, j, k, l, c_label = -1;
-  float tmp, weight, minCost;
+  int i;
 
   for (i = 0; i < sample_n; i++)
     {
-      j = 0;
-      k = sg_train->ordered_list_of_nodes[j];
+      int c_label = -1;
+      int j = 0;
+      float minCost = FLT_MAX;
 
-      if (!sg_train->use_precomputed_distance)
-        weight = sg_train->arc_weight (sg_train->node[k].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
-      else
-        weight = sg_train->distance_value[sg_train->node[k].position][i];
+      for (j=0;
 
-      minCost = MAX (sg_train->node[k].path_val, weight);
-      c_label = sg_train->node[k].label;
+           (j < sg_train->node_n)
+           && (minCost > sg_train->node[sg_train->ordered_list_of_nodes[j]].path_val);
 
-      while ((j < sg_train->node_n - 1) &&
-             (minCost > sg_train->node[sg_train->ordered_list_of_nodes[j + 1]].path_val))
+          j++)
         {
-          l = sg_train->ordered_list_of_nodes[j + 1];
+          int l;
+          float tmp, weight;
+
+          l = sg_train->ordered_list_of_nodes[j];
 
           if (!sg_train->use_precomputed_distance)
-            weight = sg_train->arc_weight (sg_train->node[k].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
+            {
+              weight = sg_train->arc_weight (sg_train->node[l].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
+            }
           else
-            weight = sg_train->distance_value[sg_train->node[k].position][i];
+            {
+              weight = sg_train->distance_value[sg_train->node[l].position][i];
+            }
 
           tmp = MAX (sg_train->node[l].path_val, weight);
           if (tmp < minCost)
@@ -217,9 +221,8 @@ supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, int 
               minCost = tmp;
               c_label = sg_train->node[l].label;
             }
-          j++;
-          k = l;
         }
+
       label[i] = c_label;
     }
 }

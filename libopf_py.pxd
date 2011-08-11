@@ -17,7 +17,7 @@ cdef extern from "subgraph.h":
     subgraph * subgraph_create       (int node_n)
     void       subgraph_destroy      (subgraph ** sg)
     void       subgraph_set_metric   (subgraph *sg, METRIC m)
-    bint       subgraph_set_data     (subgraph *sg, float *feat, int *label, int node_n, int feat_n)
+    bint       subgraph_set_data     (subgraph *sg, float *feat, int *label, int feat_n)
 
 cdef extern from "supervised.h":
     void supervised_train    (subgraph * sg)
