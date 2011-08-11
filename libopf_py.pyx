@@ -3,7 +3,6 @@
 cimport libopf_py
 import numpy as np
 cimport numpy as np
-from libc.stdlib cimport malloc, free
 
 cdef class OPF:
   cdef libopf_py.subgraph * sg
