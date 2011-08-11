@@ -46,6 +46,8 @@ aux: $(SRC)/common.c $(SRC)/set.c $(SRC)/realheap.c $(SRC)/linearalloc.c  $(SRC)
 clean:
 	rm -f $(LIB)/lib*.so; rm -f $(OBJ)/*.o
 
-bindings:
+cython:
 	cython libopf_py.pyx
+
+bindings:
 	$(CC) -shared -pthread -fPIC -fwrapv -O2 -Wall -fno-strict-aliasing $(INCFLAGS) -I/usr/include/python2.7 -L$(LIB) -lopf -o $(LIB)/libopf_py.so libopf_py.c
