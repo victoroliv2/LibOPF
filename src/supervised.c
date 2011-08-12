@@ -37,6 +37,8 @@
 #include "knn.h"
 #include "supervised.h"
 
+#include <omp.h>
+
 // Find prototypes by the MST approach
 void
 mst_prototypes (struct subgraph * sg)
@@ -188,6 +190,8 @@ supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, int 
 {
   int i;
 
+  omp_set_num_threads(NTHREADS);
+  #pragma omp parallel for
   for (i = 0; i < sample_n; i++)
     {
       int c_label = -1;
@@ -207,13 +211,9 @@ supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, int 
           l = sg_train->ordered_list_of_nodes[j];
 
           if (!sg_train->use_precomputed_distance)
-            {
-              weight = sg_train->arc_weight (sg_train->node[l].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
-            }
+            weight = sg_train->arc_weight (sg_train->node[l].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
           else
-            {
-              weight = sg_train->distance_value[sg_train->node[l].position][i];
-            }
+            weight = sg_train->distance_value[sg_train->node[l].position][i];
 
           tmp = MAX (sg_train->node[l].path_val, weight);
           if (tmp < minCost)

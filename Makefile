@@ -5,7 +5,7 @@ OBJ=./obj
 
 CC=gcc
 
-FLAGS= -O3 -Wall -fPIC
+FLAGS= -O3 -Wall -fPIC -fopenmp -D NTHREADS=4 -lgomp
 
 INCFLAGS = -I$(INCLUDE)
 
@@ -50,4 +50,4 @@ cython:
 	cython libopf_py.pyx
 
 bindings:
-	$(CC) -shared -pthread -fPIC -fwrapv -O2 -Wall -fno-strict-aliasing $(INCFLAGS) -I/usr/include/python2.7 -L$(LIB) -lopf -o $(LIB)/libopf_py.so libopf_py.c
+	$(CC) -shared -pthread -fPIC -fwrapv -O2 -Wall -fno-strict-aliasing $(INCFLAGS) -I/usr/include/python2.7 -lgomp -L$(LIB) -lopf -o $(LIB)/libopf_py.so libopf_py.c
