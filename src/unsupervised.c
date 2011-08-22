@@ -107,23 +107,22 @@ unsupervised_clustering (struct subgraph * sg)
 void
 unsupervised_knn_classify (struct subgraph * sg_train, float *feat, int sample_n, int *label)
 {
-  int i, j, k;
+  int i, j;
   float weight;
 
   for (i = 0; i < sample_n; i++)
     {
       for (j = 0; (j < sg_train->node_n); j++)
         {
-          k = sg_train->ordered_list_of_nodes[j];
+          int l;
+          l = sg_train->ordered_list_of_nodes[j];
 
-          if (!sg_train->use_precomputed_distance)
-            weight = sg_train->arc_weight (sg_train->node[k].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
-          else
-            weight = sg_train->distance_value[sg_train->node[k].position][i];
+          weight = sg_train->arc_weight
+                     (sg_train->node[l].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
 
-          if (weight <= sg_train->node[k].radius)
+          if (weight <= sg_train->node[l].radius)
             {
-              label[i] = sg_train->node[k].label;
+              label[i] = sg_train->node[l].label;
               break;
             }
         }

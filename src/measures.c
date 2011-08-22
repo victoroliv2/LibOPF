@@ -21,10 +21,7 @@ subgraph_normalized_cut (struct subgraph * sg)
         {
           q = Saux->elem;
 
-          if (!sg->use_precomputed_distance)
-            dist = sg->arc_weight (sg->node[p].feat, sg->node[q].feat, sg->feat_n);
-          else
-            dist = sg->distance_value[sg->node[p].position][sg->node[q].position];
+          dist = subgraph_get_distance (sg, &sg->node[p], &sg->node[q]);
 
           if (dist > 0.0)
             {

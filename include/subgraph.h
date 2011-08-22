@@ -78,7 +78,7 @@ struct subgraph
   float *feat_data; /* memory pointer to all features data */
   int use_precomputed_distance;
   float (*arc_weight) (float *f1, float *f2, int n);
-  float **distance_value;
+  float *distance_value;
 };
 
 struct subgraph * subgraph_create       (int node_n);     /* allocates nodes without features        */
@@ -86,4 +86,18 @@ void              subgraph_destroy      (struct subgraph ** sg); /* deallocates 
 int               subgraph_set_data     (struct subgraph *sg, float *feat, int *label, int feat_n);
 void              subgraph_set_metric   (struct subgraph *sg, enum METRIC m);
 void              subgraph_pdf_evaluate (struct subgraph * sg);
+
+void             subgraph_precompute_distance (struct subgraph *sg,
+                                               float (*arc_weight) (float *f1, float *f2, int n),
+                                               enum METRIC m);
+
+inline static
+float subgraph_get_distance (struct subgraph * sg, struct snode *i, struct snode *j)
+{
+  if (sg->use_precomputed_distance)
+    return sg->distance_value[i->position*sg->node_n+j->position];
+  else
+    return sg->arc_weight(i->feat, j->feat, sg->feat_n);
+}
+
 #endif /* _SUBGRAPH_H_ */

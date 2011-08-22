@@ -23,10 +23,7 @@ subgraph_knn_create (struct subgraph * sg, int knn)
         {
           if (j != i)
             {
-              if (!sg->use_precomputed_distance)
-                d[knn] = sg->arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
-              else
-                d[knn] = sg->distance_value[sg->node[i].position][sg->node[j].position];
+              d[knn] = subgraph_get_distance (sg, &sg->node[i], &sg->node[j]);
 
               nn[knn] = j;
               k = knn;
@@ -83,10 +80,7 @@ subgraph_knn_max_distances_evaluate (struct subgraph * sg, int kmax)
         {
           if (j != i)
             {
-              if (!sg->use_precomputed_distance)
-                d[kmax] = sg->arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
-              else
-                d[kmax] = sg->distance_value[sg->node[i].position][sg->node[j].position];
+              d[kmax] = subgraph_get_distance (sg, &sg->node[i], &sg->node[j]);
 
               nn[kmax] = j;
               k = kmax;
@@ -273,10 +267,7 @@ subgraph_k_max_pdf (struct subgraph * sg)
       //neighbors yet, i.e. nplatadj = 0 for every node in sg
       for (k = 1; k <= kmax; k++)
         {
-          if (!sg->use_precomputed_distance)
-            dist = sg->arc_weight (sg->node[i].feat, sg->node[adj->elem].feat, sg->feat_n);
-          else
-            dist = sg->distance_value[sg->node[i].position][sg->node[adj->elem].position];
+          dist = subgraph_get_distance (sg, &sg->node[i], &sg->node[adj->elem]);
 
           value[i] += exp (-dist / sg->k);
           adj = adj->next;
@@ -335,10 +326,8 @@ subgraph_k_max_normalized_cut (struct subgraph * sg)
       for (Saux = sg->node[p].adj, k = 1; k <= nadj; Saux = Saux->next, k++)
         {
           q = Saux->elem;
-          if (!sg->use_precomputed_distance)
-            dist = sg->arc_weight (sg->node[p].feat, sg->node[q].feat, sg->feat_n);
-          else
-            dist = sg->distance_value[sg->node[p].position][sg->node[q].position];
+
+          dist = subgraph_get_distance (sg, &sg->node[p], &sg->node[q]);
 
           if (dist > 0.0)
             {

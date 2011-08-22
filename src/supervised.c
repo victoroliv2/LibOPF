@@ -94,10 +94,7 @@ mst_prototypes (struct subgraph * sg)
             {
               if (p != q)
                 {
-                  if (!sg->use_precomputed_distance)
-                    weight = sg->arc_weight (sg->node[p].feat, sg->node[q].feat, sg->feat_n);
-                  else
-                    weight = sg->distance_value[sg->node[p].position][sg-> node[q].position];
+                  weight = subgraph_get_distance (sg, &sg->node[p], &sg->node[q]);
 
                   if (weight < path_val[q])
                     {
@@ -161,10 +158,7 @@ supervised_train (struct subgraph * sg)
             {
               if (path_val[p] < path_val[q])
                 {
-                  if (!sg->use_precomputed_distance)
-                    weight = sg->arc_weight (sg->node[p].feat, sg->node[q].feat, sg->feat_n);
-                  else
-                    weight = sg->distance_value[sg->node[p].position][sg->node[q].position];
+                  weight = subgraph_get_distance (sg, &sg->node[p], &sg->node[q]);
 
                   tmp = MAX (path_val[p], weight);
                   if (tmp < path_val[q])
@@ -181,7 +175,6 @@ supervised_train (struct subgraph * sg)
   real_heap_destroy (&Q);
   free (path_val);
 }
-
 
 
 //Classification function: it simply classifies samples from sg -----
@@ -210,10 +203,8 @@ supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, int 
 
           l = sg_train->ordered_list_of_nodes[j];
 
-          if (!sg_train->use_precomputed_distance)
-            weight = sg_train->arc_weight (sg_train->node[l].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
-          else
-            weight = sg_train->distance_value[sg_train->node[l].position][i];
+          weight = sg_train->arc_weight
+                     (sg_train->node[l].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
 
           tmp = MAX (sg_train->node[l].path_val, weight);
           if (tmp < minCost)
@@ -226,3 +217,102 @@ supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, int 
       label[i] = c_label;
     }
 }
+
+static float
+accuracy (int *label, int *label_truth, int n)
+{
+  int ok = 0;
+  int i;
+
+  for (i=0; i < n; i++)
+    {
+      (label[i] != label_truth[i])? ok++ : 0;
+    }
+
+  return (float)(ok)/(float)(n);
+}
+
+//Replace errors from evaluating set by non prototypes from training set
+static void
+swap_wrong_prototypes (struct subgraph *sg, float *eval_feat, int *eval_label,
+                       int eval_n, int *label)
+{
+  int i;
+  int nonprototypes = 0;
+
+  float *feat_buf = (float *) calloc (sg->feat_n, sizeof (float));
+
+  for (i = 0; i < sg->node_n; i++)
+    if (sg->node[i].status == STATUS_NOTHING) nonprototypes++;
+
+  while (i < eval_n && nonprototypes > 0)
+    {
+      if (eval_label[i] != label[i])
+        {
+          /* XXX: this can take a lot of time */
+          int j;
+          do
+            {
+              j = random_int (0, sg->node_n);
+            }
+          while (sg->node[j].status == STATUS_PROTOTYPE);
+
+          sg->node[j].pred = NIL;
+          sg->node[j].status = STATUS_PROTOTYPE;
+
+          /* exchange feature vectors */
+          memcpy (feat_buf, sg->node[j].feat, sg->feat_n * sizeof (float));
+          memcpy (sg->node[j].feat, &eval_feat[sg->feat_n*i], sg->feat_n * sizeof (float));
+          memcpy (&eval_feat[sg->feat_n*i], feat_buf, sg->feat_n * sizeof (float));
+
+          /* update all distances */
+          if (sg->use_precomputed_distance)
+            {
+              for (i = 0; i < sg->node_n; i++)
+                {
+                  sg->distance_value[i*sg->node_n+j] =
+                    sg->arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
+
+                  sg->distance_value[j*sg->node_n+i] =
+                    sg->arc_weight (sg->node[j].feat, sg->node[i].feat, sg->feat_n);
+                }
+            }
+
+          nonprototypes--;
+        }
+      i++;
+    }
+
+  free (feat_buf);
+
+}
+
+#define ITER_MAX 10
+
+void
+supervised_training_iterative (struct subgraph *sg, float *eval_feat, int *eval_label,
+                               int eval_n)
+{
+  int i = 0;
+  float acc = FLT_MIN, acc_prev = FLT_MIN, delta;
+  int *label = (int *) calloc (eval_n, sizeof (int));
+
+  do
+    {
+      acc_prev = acc;
+
+      supervised_train (sg);
+      supervised_classify (sg, eval_feat, eval_n, label);
+      acc = accuracy (eval_label, label, eval_n);
+
+      swap_wrong_prototypes (sg, eval_feat, eval_label, eval_n, label);
+
+      delta = fabs(acc-acc_prev);
+      i++;
+    }
+  while ((delta > FLT_EPSILON) && (i < ITER_MAX));
+
+  free(label);
+}
+
+
