@@ -191,6 +191,9 @@ subgraph_set_metric (struct subgraph *sg, enum METRIC m)
     case BRAY_CURTIS:
       sg->arc_weight = d_bray_curtis;
       break;
+    case NO_METRIC:
+      sg->arc_weight = NULL;
+      break;
     default:
       error ("Undefinied metric");
   }

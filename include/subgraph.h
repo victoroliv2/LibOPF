@@ -51,7 +51,8 @@ enum METRIC
   CANBERRA           = 4,
   SQUARED_CHORD      = 5,
   SQUARED_CHI_SQUARE = 6,
-  BRAY_CURTIS        = 7
+  BRAY_CURTIS        = 7,
+  NO_METRIC          = 8
 };
 
 struct subgraph

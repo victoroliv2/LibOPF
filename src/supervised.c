@@ -287,8 +287,8 @@ swap_wrong_prototypes (struct subgraph *sg, float *eval_feat, int *eval_label,
 #define ITER_MAX 10
 
 void
-supervised_training_iterative (struct subgraph *sg, float *eval_feat, int *eval_label,
-                               int eval_n)
+supervised_train_iterative (struct subgraph *sg, float *eval_feat, int *eval_label,
+                            int eval_n)
 {
   int i = 0;
   float acc = FLT_MIN, acc_prev = FLT_MIN, delta;
@@ -365,8 +365,8 @@ move_misclassified_nodes (struct subgraph *sg, float *eval_feat, int *eval_label
 }
 
 void
-supervised_training_agglomerative (struct subgraph *sg,
-                                   float *eval_feat, int *eval_label, int eval_n)
+supervised_train_agglomerative (struct subgraph *sg,
+                                float *eval_feat, int *eval_label, int eval_n)
 {
     int n;
     int *label = (int *) calloc (eval_n, sizeof (int));
