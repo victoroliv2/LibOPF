@@ -11,12 +11,6 @@ enum STATUS
   STATUS_PROTOTYPE = 1
 };
 
-enum RELEVT
-{
-  RELEVT_NOT = 0,
-  RELEVT_IS  = 1
-};
-
 struct snode
 {
   float   path_val;             /* path value                                           */
@@ -31,7 +25,6 @@ struct snode
   int     position;             /* index in the feature space                           */
   float  *feat;                 /* feature vector                                       */
   enum STATUS  status;          /* 0 - nothing, 1 - prototype                           */
-  enum RELEVT  relevant;        /* 0 - irrelevant, 1 - relevant                         */
 
   int     nplatadj;             /* holds the amount of adjacent nodes on plateaus
                                  * it is used to optimize opf_bestkmincut
@@ -87,9 +80,11 @@ int               subgraph_set_data     (struct subgraph *sg, float *feat, int *
 void              subgraph_set_metric   (struct subgraph *sg, enum METRIC m);
 void              subgraph_pdf_evaluate (struct subgraph * sg);
 
-void             subgraph_precompute_distance (struct subgraph *sg,
-                                               float (*arc_weight) (float *f1, float *f2, int n),
-                                               enum METRIC m);
+void              subgraph_precompute_distance (struct subgraph *sg,
+                                                float (*arc_weight) (float *f1, float *f2, int n),
+                                                enum METRIC m);
+
+void              subgraph_resize       (struct subgraph * sg, int node_n);
 
 inline static
 float subgraph_get_distance (struct subgraph * sg, struct snode *i, struct snode *j)

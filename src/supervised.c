@@ -64,7 +64,7 @@ mst_prototypes (struct subgraph * sg)
   sg->node[0].pred = NIL;
   real_heap_insert (Q, 0);
 
-  nproto = 0.0;
+  nproto = 0.0f;
 
   // Prim's algorithm for Minimum Spanning Tree
   while (!real_heap_is_empty (Q))
@@ -225,9 +225,7 @@ accuracy (int *label, int *label_truth, int n)
   int i;
 
   for (i=0; i < n; i++)
-    {
-      (label[i] != label_truth[i])? ok++ : 0;
-    }
+    (label[i] != label_truth[i])? ok++ : 0;
 
   return (float)(ok)/(float)(n);
 }
@@ -261,9 +259,9 @@ swap_wrong_prototypes (struct subgraph *sg, float *eval_feat, int *eval_label,
           sg->node[j].status = STATUS_PROTOTYPE;
 
           /* exchange feature vectors */
-          memcpy (feat_buf, sg->node[j].feat, sg->feat_n * sizeof (float));
-          memcpy (sg->node[j].feat, &eval_feat[sg->feat_n*i], sg->feat_n * sizeof (float));
-          memcpy (&eval_feat[sg->feat_n*i], feat_buf, sg->feat_n * sizeof (float));
+          memcpy (feat_buf, sg->node[j].feat, sg->feat_n*sizeof (float));
+          memcpy (sg->node[j].feat, &eval_feat[sg->feat_n*i], sg->feat_n*sizeof (float));
+          memcpy (&eval_feat[sg->feat_n*i], feat_buf, sg->feat_n*sizeof (float));
 
           /* update all distances */
           if (sg->use_precomputed_distance)
@@ -284,7 +282,6 @@ swap_wrong_prototypes (struct subgraph *sg, float *eval_feat, int *eval_label,
     }
 
   free (feat_buf);
-
 }
 
 #define ITER_MAX 10
@@ -315,4 +312,75 @@ supervised_training_iterative (struct subgraph *sg, float *eval_feat, int *eval_
   free(label);
 }
 
+/* Move misclassified data from eval to sg */
+static void
+move_misclassified_nodes (struct subgraph *sg, float *eval_feat, int *eval_label,
+                          int eval_n, int *label, int *n)
+{
+  int i,j;
+  int misclassified_n = 0;
+  int old_n = sg->node_n;
 
+  /* count number of misclassied samples in eval */
+  for (i=0; i < sg->node_n; i++)
+    (eval_label[i] != NIL && eval_label[i] != label[i])? misclassified_n++ : 0;
+
+  *n = misclassified_n;
+
+  /* nothing to do */
+  if (misclassified_n == 0)
+    return;
+
+  /* move wrong labelled samples to subgraph */
+  for (i=0; i < eval_n; i++)
+    {
+      if (eval_label[i] != NIL && eval_label[i] != label[i])
+        {
+          sg->node[old_n+i].label_true = eval_label[i];
+
+          /* bring feature vector to subgraph */
+          memcpy (sg->node[old_n+i].feat, &eval_feat[sg->feat_n*i],
+                  sg->feat_n*sizeof (float));
+
+          eval_label[i] = NIL; /* don't use this sample in next iterations */
+
+          /* 0xFF (nan) for sanity! */
+          memset (&eval_feat[sg->feat_n*i], 0xFF, sg->feat_n*sizeof(float));
+        }
+    }
+
+  /* distance table new values */
+  if (sg->use_precomputed_distance)
+    {
+      for (i=0; i < old_n; i++)
+        for (j=old_n; j < sg->node_n; j++)
+          sg->distance_value[sg->node_n*i+j] =
+             sg->arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
+
+      for (i=old_n; i < sg->node_n; i++)
+        for (j=0; j < sg->node_n; j++)
+          sg->distance_value[sg->node_n*i+j] =
+            sg->arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
+    }
+}
+
+void
+supervised_training_agglomerative (struct subgraph *sg,
+                                   float *eval_feat, int *eval_label, int eval_n)
+{
+    int n;
+    int *label = (int *) calloc (eval_n, sizeof (int));
+
+    /* while there exists misclassified samples in eval */
+    do
+      {
+        n = 0;
+        supervised_train (sg);
+        supervised_classify (sg, eval_feat, eval_n, label);
+
+        move_misclassified_nodes (sg, eval_feat, eval_label, eval_n, label, &n);
+      }
+    while(n > 0);
+
+  free(label);
+}

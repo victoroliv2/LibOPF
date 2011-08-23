@@ -39,7 +39,6 @@ snode_copy (struct snode * dest, struct snode * src, int feat_n)
   dest->label_true = src->label_true;
   dest->position = src->position;
   dest->status = src->status;
-  dest->relevant = src->relevant;
   dest->radius = src->radius;
   dest->nplatadj = src->nplatadj;
 
@@ -79,7 +78,6 @@ subgraph_create (int node_n)
   for (i = 0; i < sg->node_n; i++)
     {
       sg->node[i].feat = NULL;
-      sg->node[i].relevant = 0;
       sg->node[i].position = i;
     }
 
@@ -96,6 +94,9 @@ subgraph_destroy (struct subgraph ** sg)
     {
       if ((*sg)->feat_data)
         free ((*sg)->feat_data);
+
+      if ((*sg)->distance_value)
+        free ((*sg)->distance_value);
 
       for (i = 0; i < (*sg)->node_n; i++)
         {
@@ -115,7 +116,7 @@ subgraph_set_data (struct subgraph *sg, float *feat, int *label, int feat_n)
   int i;
   sg->feat_n = feat_n;
 
-  sg->feat_data = (float *)malloc (sg->node_n*sg->feat_n*sizeof(float));
+  sg->feat_data = (float *) calloc (sg->node_n*sg->feat_n, sizeof(float));
 
   if (!sg->feat_data) return FALSE;
 
@@ -125,7 +126,7 @@ subgraph_set_data (struct subgraph *sg, float *feat, int *label, int feat_n)
   for (i = 0; i < sg->node_n; i++)
     {
       float *chunk = &sg->feat_data[i*sg->feat_n];
-      memcpy (chunk, &feat[i*sg->feat_n], sg->feat_n*sizeof(float));
+      memcpy (chunk, &feat[sg->feat_n*i], sg->feat_n*sizeof(float));
       sg->node[i].feat  = chunk;
       sg->node[i].label_true = label[i];
     }
@@ -150,13 +151,9 @@ subgraph_precompute_distance (struct subgraph *sg, float (*arc_weight)
 
   if (!arc_weight)
     for (i = 0; i < sg->node_n; i++)
-      {
-        for (j = 0; j < sg->node_n; j++)
-          {
-            sg->distance_value[i*sg->node_n+j] =
-              arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
-          }
-      }
+      for (j = 0; j < sg->node_n; j++)
+        sg->distance_value[i*sg->node_n+j] =
+          arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
 
 }
 
@@ -252,4 +249,39 @@ subgraph_pdf_evaluate (struct subgraph * sg)
         }
     }
   free (value);
+}
+
+/* this function doesn't update the new values in the distance table */
+void
+subgraph_resize (struct subgraph * sg, int node_n)
+{
+  int i;
+  int old_n = sg->node_n;
+  sg->node_n += node_n;
+  sg->node                  = (struct snode *) realloc (sg->node,
+                                                        sg->node_n*sizeof (struct snode));
+  sg->ordered_list_of_nodes = (int *)          realloc (sg->ordered_list_of_nodes,
+                                                        sg->node_n*sizeof (int));
+  sg->feat_data             = (float *)        realloc (sg->feat_data,
+                                                        sg->node_n*sg->feat_n*sizeof(float));
+
+  for (i=0; i < sg->node_n; i++)
+    {
+      sg->node[i].position = i;
+      sg->node[i].feat     = &sg->feat_data[i*sg->feat_n];
+    }
+
+  /* resize distance table */
+  if (sg->use_precomputed_distance)
+    {
+      int i;
+      float *dt = (float *) calloc (sg->node_n*sg->node_n, sizeof (float));
+
+      /* reuse old values */
+      for (i=0; i < old_n; i++)
+        memcpy (&dt[i*sg->node_n], &sg->distance_value[i*old_n], old_n*sizeof(float));
+
+      free(sg->distance_value);
+      sg->distance_value = dt;
+    }
 }
