@@ -37,6 +37,7 @@ struct snode
   struct set *adj;               /* adjacency list for knn graphs */
 };
 
+void snode_clear (struct snode *n);
 void snode_copy (struct snode * dest, struct snode * src, int feat_n); /* copy nodes */
 void snode_swap (struct snode * a, struct snode * b);                  /* swap nodes */
 

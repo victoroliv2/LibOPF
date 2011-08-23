@@ -319,12 +319,12 @@ static void
 move_misclassified_nodes (struct subgraph *sg, float *eval_feat, int *eval_label,
                           int eval_n, int *label, int *n)
 {
-  int i,j;
+  int i,j,k;
   int misclassified_n = 0;
   int old_n = sg->node_n;
 
   /* count number of misclassied samples in eval */
-  for (i=0; i < sg->node_n; i++)
+  for (i=0; i < eval_n; i++)
     (eval_label[i] != NIL && eval_label[i] != label[i])? misclassified_n++ : 0;
 
   *n = misclassified_n;
@@ -336,20 +336,24 @@ move_misclassified_nodes (struct subgraph *sg, float *eval_feat, int *eval_label
   subgraph_resize (sg, sg->node_n+misclassified_n);
 
   /* move wrong labelled samples to subgraph */
-  for (i=0; i < eval_n; i++)
+  for (i=0, k=old_n;
+       i < eval_n;
+       i++, k++)
     {
       if (eval_label[i] != NIL && eval_label[i] != label[i])
         {
-          sg->node[old_n+i].label_true = eval_label[i];
+          sg->node[k].label_true = eval_label[i];
 
           /* bring feature vector to subgraph */
-          memcpy (sg->node[old_n+i].feat, &eval_feat[sg->feat_n*i],
+          memcpy (sg->node[k].feat, &eval_feat[sg->feat_n*i],
                   sg->feat_n*sizeof (float));
 
           eval_label[i] = NIL; /* don't use this sample in next iterations */
 
           /* 0xFF (nan) for sanity! */
           memset (&eval_feat[sg->feat_n*i], 0xFF, sg->feat_n*sizeof(float));
+
+          k++;
         }
     }
 
@@ -374,17 +378,24 @@ void
 supervised_train_agglomerative (struct subgraph *sg,
                                 float *eval_feat, int *eval_label, int eval_n)
 {
-    int n;
+    int n = -1;
     int *label = (int *) calloc (eval_n, sizeof (int));
 
     /* while there exists misclassified samples in eval */
     do
       {
+        fprintf(stderr, "----------- %d ----------------\n", n);
+
         n = 0;
+
         supervised_train (sg);
+        fprintf(stderr, "train\n");
+
         supervised_classify (sg, eval_feat, eval_n, label);
+        fprintf(stderr, "classify\n");
 
         move_misclassified_nodes (sg, eval_feat, eval_label, eval_n, label, &n);
+        fprintf(stderr, "move\n");
       }
     while(n > 0);
 

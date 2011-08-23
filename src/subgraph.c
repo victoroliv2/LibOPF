@@ -26,6 +26,24 @@
 
 /*----------- Constructor and destructor ------------------------*/
 //Copy nodes
+
+void
+snode_clear (struct snode *n)
+{
+  n->path_val   = NAN;
+  n->dens       = NAN;
+  n->radius     = NAN;
+  n->label      = NIL;
+  n->root       = NIL;
+  n->pred       = NIL;
+  n->label_true = NIL;
+  n->position   = NIL;
+  n->feat       = NULL;
+  n->status     = 0;
+  n->nplatadj   = 0;
+  n->adj        = NULL;
+}
+
 void
 snode_copy (struct snode * dest, struct snode * src, int feat_n)
 {
@@ -77,6 +95,7 @@ subgraph_create (int node_n)
 
   for (i = 0; i < sg->node_n; i++)
     {
+      snode_clear(&sg->node[i]);
       sg->node[i].feat = NULL;
       sg->node[i].position = i;
     }
@@ -267,8 +286,9 @@ subgraph_resize (struct subgraph * sg, int node_n)
   sg->feat_data             = (float *)        realloc (sg->feat_data,
                                                         sg->node_n*sg->feat_n*sizeof(float));
 
-  for (i=0; i < sg->node_n; i++)
+  for (i=old_n; i < sg->node_n; i++)
     {
+      snode_clear(&sg->node[i]);
       sg->node[i].position = i;
       sg->node[i].feat     = &sg->feat_data[i*sg->feat_n];
     }
