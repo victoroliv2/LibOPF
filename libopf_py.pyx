@@ -20,7 +20,7 @@ cdef class OPF:
           bint use_precomputed_distance=False, double split=0.2):
 
     cdef np.ndarray[np.float32_t, ndim=2, mode='c'] X_train, X_eval
-    cdef np.ndarray[np.float32_t, ndim=1, mode='c'] Y_train, Y_eval
+    cdef np.ndarray[np.int32_t, ndim=1, mode='c'] Y_train, Y_eval
     cdef int train_size, eval_size
 
     d = {
