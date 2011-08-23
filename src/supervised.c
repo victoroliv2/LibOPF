@@ -268,11 +268,13 @@ swap_wrong_prototypes (struct subgraph *sg, float *eval_feat, int *eval_label,
             {
               for (i = 0; i < sg->node_n; i++)
                 {
-                  sg->distance_value[i*sg->node_n+j] =
-                    sg->arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
+                  sg->distance_value[i*sg->node_n+j] = sg->arc_weight (sg->node[i].feat,
+                                                                       sg->node[j].feat,
+                                                                       sg->feat_n);
 
-                  sg->distance_value[j*sg->node_n+i] =
-                    sg->arc_weight (sg->node[j].feat, sg->node[i].feat, sg->feat_n);
+                  sg->distance_value[j*sg->node_n+i] = sg->arc_weight (sg->node[j].feat,
+                                                                       sg->node[i].feat,
+                                                                       sg->feat_n);
                 }
             }
 
@@ -331,6 +333,8 @@ move_misclassified_nodes (struct subgraph *sg, float *eval_feat, int *eval_label
   if (misclassified_n == 0)
     return;
 
+  subgraph_resize (sg, sg->node_n+misclassified_n);
+
   /* move wrong labelled samples to subgraph */
   for (i=0; i < eval_n; i++)
     {
@@ -354,13 +358,15 @@ move_misclassified_nodes (struct subgraph *sg, float *eval_feat, int *eval_label
     {
       for (i=0; i < old_n; i++)
         for (j=old_n; j < sg->node_n; j++)
-          sg->distance_value[sg->node_n*i+j] =
-             sg->arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
+          sg->distance_value[sg->node_n*i+j] = sg->arc_weight (sg->node[i].feat,
+                                                               sg->node[j].feat,
+                                                               sg->feat_n);
 
       for (i=old_n; i < sg->node_n; i++)
         for (j=0; j < sg->node_n; j++)
-          sg->distance_value[sg->node_n*i+j] =
-            sg->arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
+          sg->distance_value[sg->node_n*i+j] = sg->arc_weight (sg->node[i].feat,
+                                                               sg->node[j].feat,
+                                                               sg->feat_n);
     }
 }
 

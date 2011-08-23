@@ -149,12 +149,11 @@ subgraph_precompute_distance (struct subgraph *sg, float (*arc_weight)
   sg->use_precomputed_distance = TRUE;
   sg->distance_value = (float *) calloc (sg->node_n*sg->node_n, sizeof (float));
 
-  if (!arc_weight)
-    for (i = 0; i < sg->node_n; i++)
-      for (j = 0; j < sg->node_n; j++)
-        sg->distance_value[i*sg->node_n+j] =
-          arc_weight (sg->node[i].feat, sg->node[j].feat, sg->feat_n);
-
+  for (i = 0; i < sg->node_n; i++)
+    for (j = 0; j < sg->node_n; j++)
+      sg->distance_value[i*sg->node_n+j] = sg->arc_weight (sg->node[i].feat,
+                                                           sg->node[j].feat,
+                                                           sg->feat_n);
 }
 
 void

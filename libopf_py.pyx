@@ -17,7 +17,7 @@ cdef class OPF:
           np.ndarray[np.float32_t, ndim=2, mode='c'] X,
           np.ndarray[np.int32_t,   ndim=1, mode='c'] Y,
           learning="default", metric="euclidian",
-          bint use_precomputed_distance=True, double split=0.2):
+          bint use_precomputed_distance=False, double split=0.2):
 
     cdef np.ndarray[np.float32_t, ndim=2, mode='c'] X_train, X_eval
     cdef np.ndarray[np.float32_t, ndim=1, mode='c'] Y_train, Y_eval
