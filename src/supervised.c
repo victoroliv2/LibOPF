@@ -336,9 +336,8 @@ move_misclassified_nodes (struct subgraph *sg, float *eval_feat, int *eval_label
   subgraph_resize (sg, sg->node_n+misclassified_n);
 
   /* move wrong labelled samples to subgraph */
-  for (i=0, k=old_n;
-       i < eval_n;
-       i++, k++)
+  k = old_n;
+  for (i=0; i < eval_n; i++)
     {
       if (eval_label[i] != NIL && eval_label[i] != label[i])
         {
@@ -384,18 +383,10 @@ supervised_train_agglomerative (struct subgraph *sg,
     /* while there exists misclassified samples in eval */
     do
       {
-        fprintf(stderr, "----------- %d ----------------\n", n);
-
         n = 0;
-
         supervised_train (sg);
-        fprintf(stderr, "train\n");
-
         supervised_classify (sg, eval_feat, eval_n, label);
-        fprintf(stderr, "classify\n");
-
         move_misclassified_nodes (sg, eval_feat, eval_label, eval_n, label, &n);
-        fprintf(stderr, "move\n");
       }
     while(n > 0);
 

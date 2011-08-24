@@ -278,7 +278,7 @@ subgraph_resize (struct subgraph * sg, int node_n)
 {
   int i;
   int old_n = sg->node_n;
-  sg->node_n += node_n;
+  sg->node_n = node_n;
   sg->node                  = (struct snode *) realloc (sg->node,
                                                         sg->node_n*sizeof (struct snode));
   sg->ordered_list_of_nodes = (int *)          realloc (sg->ordered_list_of_nodes,
