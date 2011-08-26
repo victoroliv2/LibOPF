@@ -84,19 +84,23 @@ subgraph_create (int node_n)
 
   if (!sg) return NULL;
 
-  // zero for sanity!
-  memset (sg, 0, sizeof (struct subgraph));
+  memset (sg, 0xFF, sizeof (struct subgraph));
 
   sg->node_n = node_n;
+  sg->distance_value = NULL;
+
   sg->node = (struct snode *) calloc (node_n, sizeof (struct snode));
   sg->ordered_list_of_nodes = (int *) calloc (node_n, sizeof (int));
 
   if (!(sg->node && sg->ordered_list_of_nodes)) return NULL;
 
+  /* sanity */
+  memset (sg->node, 0xFF, node_n*sizeof (struct snode));
+  memset (sg->ordered_list_of_nodes, 0xFF, node_n*sizeof (int));
+
   for (i = 0; i < sg->node_n; i++)
     {
       snode_clear(&sg->node[i]);
-      sg->node[i].feat = NULL;
       sg->node[i].position = i;
     }
 
@@ -278,6 +282,7 @@ subgraph_resize (struct subgraph * sg, int node_n)
 {
   int i;
   int old_n = sg->node_n;
+
   sg->node_n = node_n;
   sg->node                  = (struct snode *) realloc (sg->node,
                                                         sg->node_n*sizeof (struct snode));
@@ -286,12 +291,21 @@ subgraph_resize (struct subgraph * sg, int node_n)
   sg->feat_data             = (float *)        realloc (sg->feat_data,
                                                         sg->node_n*sg->feat_n*sizeof(float));
 
+  /* sanity */
+  memset (&sg->node[old_n],                   0xFF, (node_n-old_n)*sizeof (struct snode));
+  memset (&sg->ordered_list_of_nodes[old_n],  0xFF, (node_n-old_n)*sizeof (int));
+  memset (&sg->feat_data[old_n*sg->feat_n],   0xFF, (node_n-old_n)*sizeof (float));
+
+  /* clear new nodes */
   for (i=old_n; i < sg->node_n; i++)
     {
       snode_clear(&sg->node[i]);
       sg->node[i].position = i;
-      sg->node[i].feat     = &sg->feat_data[i*sg->feat_n];
     }
+
+  /* feat_data can change in realloc */
+  for (i=0; i < sg->node_n; i++)
+    sg->node[i].feat = &sg->feat_data[i*sg->feat_n];
 
   /* resize distance table */
   if (sg->use_precomputed_distance)
