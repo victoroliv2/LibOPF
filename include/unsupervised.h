@@ -3,6 +3,8 @@
 
 #include "subgraph.h"
 
+void subgraph_best_k_min_cut (struct subgraph * sg, int kmin, int kmax);
+
 /* Training function: it computes unsupervised
  * training for the pre-computed best k. */
 void unsupervised_clustering (struct subgraph * sg);

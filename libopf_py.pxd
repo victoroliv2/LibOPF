@@ -22,6 +22,7 @@ cdef extern from "subgraph.h":
     void       subgraph_precompute_distance (subgraph *sg,
                                              float (*arc_weight) (float *f1, float *f2, int n),
                                              METRIC m)
+    void       subgraph_pdf_evaluate (subgraph * sg)
 
 cdef extern from "supervised.h":
     void supervised_train    (subgraph * sg)
@@ -30,3 +31,10 @@ cdef extern from "supervised.h":
     void supervised_train_agglomerative (subgraph *sg,
                                          float *eval_feat, int *eval_label, int eval_n)
     void supervised_classify (subgraph * sgtrain, float *feat, int sample_n, int *label)
+
+cdef extern from "unsupervised.h":
+    void subgraph_best_k_min_cut (subgraph * sg, int kmin, int kmax)
+
+    void unsupervised_clustering (subgraph * sg)
+
+    void unsupervised_knn_classify (subgraph * sgtrain, float *feat, int sample_n, int *label)

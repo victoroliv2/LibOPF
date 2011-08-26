@@ -11,6 +11,5 @@ float *subgraph_knn_max_distances_evaluate (struct subgraph * sg, int kmax);    
 void   subgraph_k_max_pdf                  (struct subgraph * sg);                     /* pdf computation only for sg->bestk neighbors                 */
 void   subgraph_k_max_clustering           (struct subgraph * sg);                     /* opfclustering computation only for sg->bestk neighbors       */
 float  subgraph_k_max_normalized_cut       (struct subgraph * sg);                     /* normalized cut computed only for sg->bestk neighbors         */
-void   subgraph_best_k_min_cut             (struct subgraph * sg, int kmin, int kmax);
 
 #endif

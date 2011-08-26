@@ -151,7 +151,7 @@ subgraph_set_data (struct subgraph *sg, float *feat, int *label, int feat_n)
       float *chunk = &sg->feat_data[i*sg->feat_n];
       memcpy (chunk, &feat[sg->feat_n*i], sg->feat_n*sizeof(float));
       sg->node[i].feat  = chunk;
-      sg->node[i].label_true = label[i];
+      if (label) sg->node[i].label_true = label[i];
     }
 
   return TRUE;

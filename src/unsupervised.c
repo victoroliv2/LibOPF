@@ -3,8 +3,45 @@
 #include "subgraph.h"
 #include "realheap.h"
 #include "metrics.h"
+#include "knn.h"
 
 #include "unsupervised.h"
+
+// Estimate the best k by minimum cut
+void
+subgraph_best_k_min_cut (struct subgraph * sg, int kmin, int kmax)
+{
+  int k, k_best = kmax;
+  float mincut = FLT_MAX, nc;
+
+  float *maxdists = subgraph_knn_max_distances_evaluate (sg, kmax); // stores the maximum distances for every k=1,2,...,kmax
+
+  // Find the best k
+  for (k = kmin; (k <= kmax) && (mincut != 0.0); k++)
+    {
+      sg->df = maxdists[k - 1];
+      sg->k_best = k;
+
+      subgraph_k_max_pdf (sg);
+
+      subgraph_k_max_clustering (sg);
+
+      nc = subgraph_k_max_normalized_cut (sg);
+
+      if (nc < mincut)
+        {
+          mincut = nc;
+          k_best = k;
+        }
+    }
+  free (maxdists);
+  subgraph_knn_destroy (sg);
+
+  sg->k_best = k_best;
+
+  subgraph_knn_create (sg, sg->k_best);
+  subgraph_pdf_evaluate (sg);
+}
 
 //Training function: it computes unsupervised training for the
 //pre-computed best k.
