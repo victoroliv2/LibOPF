@@ -7,6 +7,32 @@
 
 #include "unsupervised.h"
 
+static void
+remove_plateau_neighbors (struct subgraph * sg)
+{
+  int i,j;
+  struct set *next_adj=NULL;
+
+  for(i = 0; i < sg->node_n; i++)
+  {
+      /* Eliminating all neighbors that were added
+       * for belonging to the plateau of node i.
+       * Plateau neighbors are always added to the beginning
+       * of the list, since InsertSet works that way, so they
+       * must be removed in the same fashion.
+       */
+
+      for(j = 0; j < sg->node[i].nplatadj; j++)
+      {
+          next_adj = sg->node[i].adj->next;
+          free(sg->node[i].adj);
+          sg->node[i].adj = next_adj;
+      }
+
+      sg->node[i].nplatadj = 0;
+  }
+}
+
 // Estimate the best k by minimum cut
 void
 subgraph_best_k_min_cut (struct subgraph * sg, int kmin, int kmax)
@@ -33,6 +59,8 @@ subgraph_best_k_min_cut (struct subgraph * sg, int kmin, int kmax)
           mincut = nc;
           k_best = k;
         }
+
+      remove_plateau_neighbors(sg);
     }
   free (maxdists);
   subgraph_knn_destroy (sg);
