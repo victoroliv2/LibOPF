@@ -5,7 +5,7 @@ OBJ=./obj
 
 CC=gcc
 
-FLAGS= -O3 -Wall -fPIC -fopenmp -D NTHREADS=4 -lgomp
+FLAGS= -march=native -O3 -Wall -fPIC -fopenmp -D NTHREADS=4 -lgomp
 
 INCFLAGS = -I$(INCLUDE)
 
