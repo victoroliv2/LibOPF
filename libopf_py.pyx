@@ -5,10 +5,13 @@ import numpy as np
 cimport numpy as np
 
 cdef class OPF:
+
   cdef libopf_py.subgraph * sg
+  cdef bint supervised
+
   def __cinit__(self):
       self.sg = NULL
-      self.supervised = None
+      self.supervised = True
 
   def __dealloc__(self):
     if self.sg is not NULL:
@@ -16,7 +19,7 @@ cdef class OPF:
 
   def fit (self,
           np.ndarray[np.float32_t, ndim=2, mode='c'] X,
-          np.ndarray[np.int32_t,   ndim=1, mode='c'] Y,
+          np.ndarray[np.int32_t,   ndim=1, mode='c'] Y = None,
           learning="default", metric="euclidian",
           bint use_precomputed_distance=False, double split=0.2):
 
@@ -39,7 +42,7 @@ cdef class OPF:
       if X.shape[0] != Y.shape[0]:
         raise Exception("Shape mismatch")
 
-      if Y:
+      if Y != None:
         self.supervised = True
       else:
         self.supervised = False
