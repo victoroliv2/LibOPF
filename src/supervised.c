@@ -225,7 +225,7 @@ accuracy (int *label, int *label_truth, int n)
   int i;
 
   for (i=0; i < n; i++)
-    (label[i] != label_truth[i])? ok++ : 0;
+    (label[i] == label_truth[i])? ok++ : 0;
 
   return (float)(ok)/(float)(n);
 }
