@@ -218,99 +218,159 @@ opf_supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, 
     }
 }
 
+
+static void
+supervised_classify_subgraph (struct subgraph * sg_train, struct subgraph * sg_eval)
+{
+  int i;
+
+  omp_set_num_threads(NTHREADS);
+  #pragma omp parallel for
+  for (i = 0; i < sg_eval->node_n; i++)
+    {
+      int c_label = -1;
+      int j = 0;
+      float minCost = FLT_MAX;
+
+      for (j=0;
+
+           (j < sg_train->node_n)
+           && (minCost > sg_train->node[sg_train->ordered_list_of_nodes[j]].path_val);
+
+          j++)
+        {
+          int l;
+          float tmp, weight;
+
+          l = sg_train->ordered_list_of_nodes[j];
+
+          weight = sg_train->arc_weight
+                     (sg_train->node[l].feat, sg_eval->node[i].feat, sg_train->feat_n);
+
+          tmp = MAX (sg_train->node[l].path_val, weight);
+          if (tmp < minCost)
+            {
+              minCost = tmp;
+              c_label = sg_train->node[l].label;
+            }
+        }
+
+      sg_eval->node[i].label = c_label;
+    }
+}
+
+
 static float
-accuracy (int *label, int *label_truth, int n)
+accuracy (struct subgraph *sg)
 {
   int ok = 0;
   int i;
 
-  for (i=0; i < n; i++)
-    (label[i] == label_truth[i])? ok++ : 0;
+  for (i=0; i < sg->node_n; i++)
+    (sg->node[i].label == sg->node[i].label_true)? ok++ : 0;
 
-  return (float)(ok)/(float)(n);
+  return (float)(ok)/(float)(sg->node_n);
 }
 
-//Replace errors from evaluating set by non prototypes from training set
+/* Replace errors from evaluating set by non prototypes from training set */
 static void
-swap_wrong_prototypes (struct subgraph *sg, float *eval_feat, int *eval_label,
-                       int eval_n, int *label)
+swap_wrong_prototypes (struct subgraph *sg_train, struct subgraph *sg_eval)
 {
   int i;
   int nonprototypes = 0;
 
-  float *feat_buf = (float *) calloc (sg->feat_n, sizeof (float));
+  for (i = 0; i < sg_train->node_n; i++)
+    if (sg_train->node[i].status == STATUS_NOTHING) nonprototypes++;
 
-  for (i = 0; i < sg->node_n; i++)
-    if (sg->node[i].status == STATUS_NOTHING) nonprototypes++;
-
-  while (i < eval_n && nonprototypes > 0)
+  while (i < sg_eval->node_n && nonprototypes > 0)
     {
-      if (eval_label[i] != label[i])
+      if (sg_eval->node[i].label != sg_eval->node[i].label_true)
         {
           /* XXX: this can take a lot of time */
           int j;
           do
             {
-              j = random_int (0, sg->node_n);
+              j = random_int (0, sg_train->node_n);
             }
-          while (sg->node[j].status == STATUS_PROTOTYPE);
+          while (sg_train->node[j].status == STATUS_PROTOTYPE);
 
-          sg->node[j].pred = NIL;
-          sg->node[j].status = STATUS_PROTOTYPE;
+          {
+            struct snode tmp  = sg_train->node[j];
+            sg_train->node[j] = sg_eval->node[i];
+            sg_eval->node[i]  = tmp;
+          }
 
-          /* exchange feature vectors */
-          memcpy (feat_buf, sg->node[j].feat, sg->feat_n*sizeof (float));
-          memcpy (sg->node[j].feat, &eval_feat[sg->feat_n*i], sg->feat_n*sizeof (float));
-          memcpy (&eval_feat[sg->feat_n*i], feat_buf, sg->feat_n*sizeof (float));
+          sg_train->node[j].pred = NIL;
+          sg_train->node[j].status = STATUS_PROTOTYPE;
 
           nonprototypes--;
         }
       i++;
     }
+}
 
-  free (feat_buf);
+/* create two pointers to a subgraph data,
+   this function is used in some training modes to reorganize nodes */
+static void
+subgraph_split_mirrored (struct subgraph * sg, float split,
+                         struct subgraph * sg1, struct subgraph * sg2)
+{
+  memset (sg1, 0xFF, sizeof(struct subgraph));
+  memset (sg2, 0xFF, sizeof(struct subgraph));
+
+  sg1->node_n = sg->node_n * split;
+  sg2->node_n = sg->node_n - sg1->node_n;
+
+  sg1->feat_n = sg2->feat_n = sg->feat_n;
+
+  sg1->node = &sg->node[0];
+  sg2->node = &sg->node[sg1->node_n];
+
+  sg1->ordered_list_of_nodes = &sg->ordered_list_of_nodes[0];
+  sg2->ordered_list_of_nodes = &sg->ordered_list_of_nodes[sg1->node_n];
+
+  sg1->arc_weight = sg2->arc_weight = sg->arc_weight;
+  sg1->feat_data = sg2->feat_data = sg->feat_data;
 }
 
 #define ITER_MAX 10
 
 void
-opf_supervised_train_iterative (struct subgraph *sg, float *eval_feat, int *eval_label,
-                                int eval_n)
+opf_supervised_train_iterative (struct subgraph *sg, float split)
 {
   int i = 0;
   float acc = FLT_MIN, acc_prev = FLT_MIN, delta;
-  int *label = (int *) calloc (eval_n, sizeof (int));
+
+  struct subgraph sg_train, sg_eval;
+  subgraph_split_mirrored (sg, split, &sg_train, &sg_eval);
 
   do
     {
       acc_prev = acc;
 
-      opf_supervised_train (sg);
-      opf_supervised_classify (sg, eval_feat, eval_n, label);
-      acc = accuracy (eval_label, label, eval_n);
+      opf_supervised_train (&sg_train);
+      supervised_classify_subgraph (&sg_train, &sg_eval);
+      acc = accuracy (&sg_eval);
 
-      swap_wrong_prototypes (sg, eval_feat, eval_label, eval_n, label);
+      swap_wrong_prototypes (&sg_train, &sg_eval);
 
       delta = fabs(acc-acc_prev);
       i++;
     }
   while ((delta > FLT_EPSILON) && (i < ITER_MAX));
-
-  free(label);
 }
 
 /* Move misclassified data from eval to sg */
 static void
-move_misclassified_nodes (struct subgraph *sg, float *eval_feat, int *eval_label,
-                          int eval_n, int *label, int *n)
+move_misclassified_nodes (struct subgraph *sg_train, struct subgraph *sg_eval, int *n)
 {
-  int i,k;
+  int i;
   int misclassified_n = 0;
-  int old_n = sg->node_n;
 
   /* count number of misclassied samples in eval */
-  for (i=0; i < eval_n; i++)
-    (eval_label[i] != NIL && eval_label[i] != label[i])? misclassified_n++ : 0;
+  for (i=0; i < sg_eval->node_n; i++)
+    (sg_eval->node[i].label != sg_eval->node[i].label_true)?
+      misclassified_n++ : 0;
 
   *n = misclassified_n;
 
@@ -318,46 +378,44 @@ move_misclassified_nodes (struct subgraph *sg, float *eval_feat, int *eval_label
   if (misclassified_n == 0)
     return;
 
-  subgraph_resize (sg, sg->node_n+misclassified_n);
-
-  /* move wrong labelled samples to subgraph */
-  k = old_n;
-  for (i=0; i < eval_n; i++)
+  /* move wrong labelled samples from sg_eval to sg_train */
+  for (i=0; i < sg_eval->node_n; i++)
     {
-      if (eval_label[i] != NIL && eval_label[i] != label[i])
+      if (sg_eval->node[i].label != sg_eval->node[i].label_true)
         {
-          sg->node[k].label_true = eval_label[i];
+          /* have in mind that sg_train and sg_eval
+             are mirrorred to the same subgraph, so
+             sg_train->node[sg_train->node_n] == sg_eval->node[0] */
+          {
+            struct snode tmp = sg_train->node[sg_train->node_n];
+            sg_train->node[sg_train->node_n] = sg_eval->node[i];
+            sg_eval->node[i] = tmp;
+          }
 
-          /* bring feature vector to subgraph */
-          memcpy (sg->node[k].feat, &eval_feat[sg->feat_n*i],
-                  sg->feat_n*sizeof (float));
+          sg_train->node_n++;
+          sg_eval->node_n--;
 
-          eval_label[i] = NIL; /* don't use this sample in next iterations */
-
-          /* 0xFF (nan) for sanity! */
-          memset (&eval_feat[sg->feat_n*i], 0xFF, sg->feat_n*sizeof(float));
-
-          k++;
+          /* sg_train took the first element of sg_eval */
+          sg_eval->node++;
+          sg_eval->ordered_list_of_nodes++;
         }
     }
 }
 
 void
-opf_supervised_train_agglomerative (struct subgraph *sg,
-                                    float *eval_feat, int *eval_label, int eval_n)
+opf_supervised_train_agglomerative (struct subgraph *sg, float split)
 {
-    int n = -1;
-    int *label = (int *) calloc (eval_n, sizeof (int));
+    int n;
+    struct subgraph sg_train, sg_eval;
+    subgraph_split_mirrored (sg, split, &sg_train, &sg_eval);
 
     /* while there exists misclassified samples in eval */
     do
       {
         n = 0;
         opf_supervised_train (sg);
-        opf_supervised_classify (sg, eval_feat, eval_n, label);
-        move_misclassified_nodes (sg, eval_feat, eval_label, eval_n, label, &n);
+        supervised_classify_subgraph (&sg_train, &sg_eval);
+        move_misclassified_nodes (&sg_train, &sg_eval, &n);
       }
     while(n > 0);
-
-  free(label);
 }

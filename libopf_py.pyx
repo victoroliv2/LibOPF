@@ -9,6 +9,9 @@ cdef class OPF:
   cdef libopf_py.subgraph * sg
   cdef bint supervised
 
+  cdef int node_n
+  cdef int feat_n
+
   def __cinit__(self):
       self.sg = NULL
       self.supervised = True
@@ -21,12 +24,7 @@ cdef class OPF:
           np.ndarray[np.float32_t, ndim=2, mode='c'] X,
           np.ndarray[np.int32_t,   ndim=1, mode='c'] Y = None,
           learning="default", metric="euclidian",
-          bint use_precomputed_distance=False, double split=0.2):
-
-      cdef np.ndarray[np.float32_t, ndim=2, mode='c'] X_train, X_eval
-      cdef np.ndarray[np.int32_t, ndim=1, mode='c'] Y_train, Y_eval
-      cdef int train_size, eval_size
-      eval_size = 0
+          bint use_precomputed_distance=False, float split=0.8):
 
       d = {
             "euclidian"          : libopf_py.EUCLIDIAN,
@@ -42,39 +40,28 @@ cdef class OPF:
       if X.shape[0] != Y.shape[0]:
         raise Exception("Shape mismatch")
 
+      if use_precomputed_distance and X.shape[0] != X.shape[1]:
+        raise Exception("Distance matrix should be squared, but is (%s,%s)" % (X.shape[0], X.shape[1]))
+
       if Y != None:
         self.supervised = True
       else:
         self.supervised = False
 
-      if self.supervised: #supervised
+      self.node_n = <int>X.shape[0]
+      self.feat_n = <int>X.shape[1]
+
+      if self.supervised:
         if learning not in ("default", "iterative", "agglomerative"):
           raise Exception("Invalid training mode")
 
-        #split training set
-        if learning in ("iterative", "agglomerative"):
-          train_size = int(X.shape[0] * split)
-          eval_size = X.shape[0] - train_size
-        else:
-          train_size = X.shape[0]
-      else: #unsupervised
-        train_size = X.shape[0]
-
-      self.sg = libopf_py.subgraph_create (<int>train_size)
+      self.sg = libopf_py.subgraph_create (<int>X.shape[0])
       if self.sg == NULL:
         raise MemoryError("Seems we've run out of of memory")
 
       if self.supervised:
-        if learning in ("iterative", "agglomerative"):
-          X_train, X_eval = X[:train_size], X[train_size:]
-          Y_train, Y_eval = Y[:train_size], Y[train_size:]
-          if not libopf_py.subgraph_set_feature (self.sg, <float*>X_train.data,
-                                                 <int*>Y_train.data, <int>X_train.shape[1]):
-            raise MemoryError("Seems we've run out of of memory")
-        else:
-          if not libopf_py.subgraph_set_feature (self.sg, <float*>X.data,
-                                                 <int*>Y.data, <int>X.shape[1]):
-            raise MemoryError("Seems we've run out of of memory")
+        if not libopf_py.subgraph_set_feature (self.sg, <float*>X.data, <int*>Y.data, <int>X.shape[1]):
+          raise MemoryError("Seems we've run out of of memory")
       else:
         if not libopf_py.subgraph_set_feature (self.sg, <float*>X.data, NULL, <int>X.shape[1]):
           raise MemoryError("Seems we've run out of of memory")
@@ -85,11 +72,9 @@ cdef class OPF:
         if learning == "default":
           libopf_py.opf_supervised_train (self.sg)
         elif learning == "iterative":
-          libopf_py.opf_supervised_train_iterative (self.sg, <float*>X_eval.data,
-                                                <int*>Y_eval.data, <int>eval_size)
+          libopf_py.opf_supervised_train_iterative (self.sg, split)
         elif learning == "agglomerative":
-          libopf_py.opf_supervised_train_agglomerative (self.sg, <float*>X_eval.data,
-                                                    <int*>Y_eval.data, <int>eval_size)
+          libopf_py.opf_supervised_train_agglomerative (self.sg, split)
       else:
         libopf_py.opf_best_k_min_cut (self.sg, 1, 10)
         libopf_py.opf_unsupervised_clustering (self.sg)
@@ -101,6 +86,9 @@ cdef class OPF:
 
     if self.supervised == None:
       raise Exception ("Not fitted!")
+
+    if X.shape[1] != self.feat_n:
+      raise Exception("Feature matrix shape is wrong")
 
     if self.supervised:
       libopf_py.opf_supervised_classify (self.sg, <float*>X.data, <int>X.shape[0], <int*>labels.data)
