@@ -68,33 +68,31 @@ cdef class OPF:
         if learning in ("iterative", "agglomerative"):
           X_train, X_eval = X[:train_size], X[train_size:]
           Y_train, Y_eval = Y[:train_size], Y[train_size:]
-          if not libopf_py.subgraph_set_data (self.sg, <float*>X_train.data,
-                                              <int*>Y_train.data, <int>X_train.shape[1]):
+          if not libopf_py.subgraph_set_feature (self.sg, <float*>X_train.data,
+                                                 <int*>Y_train.data, <int>X_train.shape[1]):
             raise MemoryError("Seems we've run out of of memory")
         else:
-          if not libopf_py.subgraph_set_data (self.sg, <float*>X.data, <int*>Y.data, <int>X.shape[1]):
+          if not libopf_py.subgraph_set_feature (self.sg, <float*>X.data,
+                                                 <int*>Y.data, <int>X.shape[1]):
             raise MemoryError("Seems we've run out of of memory")
       else:
-        if not libopf_py.subgraph_set_data (self.sg, <float*>X.data, NULL, <int>X.shape[1]):
+        if not libopf_py.subgraph_set_feature (self.sg, <float*>X.data, NULL, <int>X.shape[1]):
           raise MemoryError("Seems we've run out of of memory")
 
-      if use_precomputed_distance:
-        libopf_py.subgraph_precompute_distance (self.sg, NULL, d[metric])
-      else:
-        libopf_py.subgraph_set_metric (self.sg, d[metric])
+      libopf_py.subgraph_set_metric (self.sg, NULL, d[metric])
 
       if self.supervised:
         if learning == "default":
-          libopf_py.supervised_train (self.sg)
+          libopf_py.opf_supervised_train (self.sg)
         elif learning == "iterative":
-          libopf_py.supervised_train_iterative (self.sg, <float*>X_eval.data,
+          libopf_py.opf_supervised_train_iterative (self.sg, <float*>X_eval.data,
                                                 <int*>Y_eval.data, <int>eval_size)
         elif learning == "agglomerative":
-          libopf_py.supervised_train_agglomerative (self.sg, <float*>X_eval.data,
+          libopf_py.opf_supervised_train_agglomerative (self.sg, <float*>X_eval.data,
                                                     <int*>Y_eval.data, <int>eval_size)
       else:
-        libopf_py.subgraph_best_k_min_cut (self.sg, 1, 10)
-        libopf_py.unsupervised_clustering (self.sg)
+        libopf_py.opf_best_k_min_cut (self.sg, 1, 10)
+        libopf_py.opf_unsupervised_clustering (self.sg)
 
   def predict(self, np.ndarray[np.float32_t, ndim=2, mode='c'] X):
 
@@ -105,8 +103,8 @@ cdef class OPF:
       raise Exception ("Not fitted!")
 
     if self.supervised:
-      libopf_py.supervised_classify (self.sg, <float*>X.data, <int>X.shape[0], <int*>labels.data)
+      libopf_py.opf_supervised_classify (self.sg, <float*>X.data, <int>X.shape[0], <int*>labels.data)
     else:
-      libopf_py.unsupervised_knn_classify (self.sg, <float*>X.data, <int>X.shape[0], <int*>labels.data)
+      libopf_py.opf_unsupervised_knn_classify (self.sg, <float*>X.data, <int>X.shape[0], <int*>labels.data)
 
     return labels

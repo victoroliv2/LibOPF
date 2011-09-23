@@ -40,7 +40,7 @@
 #include <omp.h>
 
 // Find prototypes by the MST approach
-void
+static void
 mst_prototypes (struct subgraph * sg)
 {
   int p, q;
@@ -111,7 +111,7 @@ mst_prototypes (struct subgraph * sg)
 }
 
 void
-supervised_train (struct subgraph * sg)
+opf_supervised_train (struct subgraph * sg)
 {
   int p, q, i;
   float tmp, weight;
@@ -179,7 +179,7 @@ supervised_train (struct subgraph * sg)
 
 //Classification function: it simply classifies samples from sg -----
 void
-supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, int *label)
+opf_supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, int *label)
 {
   int i;
 
@@ -263,21 +263,6 @@ swap_wrong_prototypes (struct subgraph *sg, float *eval_feat, int *eval_label,
           memcpy (sg->node[j].feat, &eval_feat[sg->feat_n*i], sg->feat_n*sizeof (float));
           memcpy (&eval_feat[sg->feat_n*i], feat_buf, sg->feat_n*sizeof (float));
 
-          /* update all distances */
-          if (sg->use_precomputed_distance)
-            {
-              for (i = 0; i < sg->node_n; i++)
-                {
-                  sg->distance_value[i*sg->node_n+j] = sg->arc_weight (sg->node[i].feat,
-                                                                       sg->node[j].feat,
-                                                                       sg->feat_n);
-
-                  sg->distance_value[j*sg->node_n+i] = sg->arc_weight (sg->node[j].feat,
-                                                                       sg->node[i].feat,
-                                                                       sg->feat_n);
-                }
-            }
-
           nonprototypes--;
         }
       i++;
@@ -289,8 +274,8 @@ swap_wrong_prototypes (struct subgraph *sg, float *eval_feat, int *eval_label,
 #define ITER_MAX 10
 
 void
-supervised_train_iterative (struct subgraph *sg, float *eval_feat, int *eval_label,
-                            int eval_n)
+opf_supervised_train_iterative (struct subgraph *sg, float *eval_feat, int *eval_label,
+                                int eval_n)
 {
   int i = 0;
   float acc = FLT_MIN, acc_prev = FLT_MIN, delta;
@@ -300,8 +285,8 @@ supervised_train_iterative (struct subgraph *sg, float *eval_feat, int *eval_lab
     {
       acc_prev = acc;
 
-      supervised_train (sg);
-      supervised_classify (sg, eval_feat, eval_n, label);
+      opf_supervised_train (sg);
+      opf_supervised_classify (sg, eval_feat, eval_n, label);
       acc = accuracy (eval_label, label, eval_n);
 
       swap_wrong_prototypes (sg, eval_feat, eval_label, eval_n, label);
@@ -319,7 +304,7 @@ static void
 move_misclassified_nodes (struct subgraph *sg, float *eval_feat, int *eval_label,
                           int eval_n, int *label, int *n)
 {
-  int i,j,k;
+  int i,k;
   int misclassified_n = 0;
   int old_n = sg->node_n;
 
@@ -355,27 +340,11 @@ move_misclassified_nodes (struct subgraph *sg, float *eval_feat, int *eval_label
           k++;
         }
     }
-
-  /* distance table new values */
-  if (sg->use_precomputed_distance)
-    {
-      for (i=0; i < old_n; i++)
-        for (j=old_n; j < sg->node_n; j++)
-          sg->distance_value[sg->node_n*i+j] = sg->arc_weight (sg->node[i].feat,
-                                                               sg->node[j].feat,
-                                                               sg->feat_n);
-
-      for (i=old_n; i < sg->node_n; i++)
-        for (j=0; j < sg->node_n; j++)
-          sg->distance_value[sg->node_n*i+j] = sg->arc_weight (sg->node[i].feat,
-                                                               sg->node[j].feat,
-                                                               sg->feat_n);
-    }
 }
 
 void
-supervised_train_agglomerative (struct subgraph *sg,
-                                float *eval_feat, int *eval_label, int eval_n)
+opf_supervised_train_agglomerative (struct subgraph *sg,
+                                    float *eval_feat, int *eval_label, int eval_n)
 {
     int n = -1;
     int *label = (int *) calloc (eval_n, sizeof (int));
@@ -384,8 +353,8 @@ supervised_train_agglomerative (struct subgraph *sg,
     do
       {
         n = 0;
-        supervised_train (sg);
-        supervised_classify (sg, eval_feat, eval_n, label);
+        opf_supervised_train (sg);
+        opf_supervised_classify (sg, eval_feat, eval_n, label);
         move_misclassified_nodes (sg, eval_feat, eval_label, eval_n, label, &n);
       }
     while(n > 0);

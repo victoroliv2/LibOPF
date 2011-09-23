@@ -17,24 +17,23 @@ cdef extern from "subgraph.h":
 
     subgraph * subgraph_create       (int node_n)
     void       subgraph_destroy      (subgraph ** sg)
-    void       subgraph_set_metric   (subgraph *sg, METRIC m)
-    bint       subgraph_set_data     (subgraph *sg, float *feat, int *label, int feat_n)
-    void       subgraph_precompute_distance (subgraph *sg,
-                                             float (*arc_weight) (float *f1, float *f2, int n),
-                                             METRIC m)
+    void       subgraph_set_metric   (subgraph *sg,
+                                      float (*arc_weight) (float *f1, float *f2, int n),
+                                      METRIC m)
+    bint       subgraph_set_feature  (subgraph *sg, float *feat, int *label, int feat_n)
     void       subgraph_pdf_evaluate (subgraph * sg)
 
 cdef extern from "supervised.h":
-    void supervised_train    (subgraph * sg)
-    void supervised_train_iterative (subgraph *sg,
+    void opf_supervised_train    (subgraph * sg)
+    void opf_supervised_train_iterative (subgraph *sg,
                                      float *eval_feat, int *eval_label, int eval_n)
-    void supervised_train_agglomerative (subgraph *sg,
+    void opf_supervised_train_agglomerative (subgraph *sg,
                                          float *eval_feat, int *eval_label, int eval_n)
-    void supervised_classify (subgraph * sgtrain, float *feat, int sample_n, int *label)
+    void opf_supervised_classify (subgraph * sgtrain, float *feat, int sample_n, int *label)
 
 cdef extern from "unsupervised.h":
-    void subgraph_best_k_min_cut (subgraph * sg, int kmin, int kmax)
+    void opf_best_k_min_cut (subgraph * sg, int kmin, int kmax)
 
-    void unsupervised_clustering (subgraph * sg)
+    void opf_unsupervised_clustering (subgraph * sg)
 
-    void unsupervised_knn_classify (subgraph * sgtrain, float *feat, int sample_n, int *label)
+    void opf_unsupervised_knn_classify (subgraph * sgtrain, float *feat, int sample_n, int *label)

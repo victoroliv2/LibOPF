@@ -35,7 +35,7 @@ remove_plateau_neighbors (struct subgraph * sg)
 
 // Estimate the best k by minimum cut
 void
-subgraph_best_k_min_cut (struct subgraph * sg, int kmin, int kmax)
+opf_best_k_min_cut (struct subgraph * sg, int kmin, int kmax)
 {
   int k, k_best = kmax;
   float mincut = FLT_MAX, nc;
@@ -75,7 +75,7 @@ subgraph_best_k_min_cut (struct subgraph * sg, int kmin, int kmax)
 //pre-computed best k.
 
 void
-unsupervised_clustering (struct subgraph * sg)
+opf_unsupervised_clustering (struct subgraph * sg)
 {
   struct set *adj_i, *adj_j;
   char insert_i;
@@ -170,7 +170,7 @@ unsupervised_clustering (struct subgraph * sg)
 // the OPF-clustering labels from sg_train
 
 void
-unsupervised_knn_classify (struct subgraph * sg_train, float *feat, int sample_n, int *label)
+opf_unsupervised_knn_classify (struct subgraph * sg_train, float *feat, int sample_n, int *label)
 {
   int i, j;
   float weight;

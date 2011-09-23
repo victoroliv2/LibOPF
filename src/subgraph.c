@@ -87,7 +87,6 @@ subgraph_create (int node_n)
   memset (sg, 0xFF, sizeof (struct subgraph));
 
   sg->node_n = node_n;
-  sg->distance_value = NULL;
 
   sg->node = (struct snode *) calloc (node_n, sizeof (struct snode));
   sg->ordered_list_of_nodes = (int *) calloc (node_n, sizeof (int));
@@ -118,9 +117,6 @@ subgraph_destroy (struct subgraph ** sg)
       if ((*sg)->feat_data)
         free ((*sg)->feat_data);
 
-      if ((*sg)->distance_value)
-        free ((*sg)->distance_value);
-
       for (i = 0; i < (*sg)->node_n; i++)
         {
           if ((*sg)->node[i].adj != NULL)
@@ -134,7 +130,7 @@ subgraph_destroy (struct subgraph ** sg)
 }
 
 int
-subgraph_set_data (struct subgraph *sg, float *feat, int *label, int feat_n)
+subgraph_set_feature (struct subgraph *sg, float *feat, int *label, int feat_n)
 {
   int i;
   sg->feat_n = feat_n;
@@ -158,31 +154,15 @@ subgraph_set_data (struct subgraph *sg, float *feat, int *label, int feat_n)
 }
 
 void
-subgraph_precompute_distance (struct subgraph *sg, float (*arc_weight)
-                                                         (float *f1, float *f2, int n),
-                              enum METRIC m)
+subgraph_set_metric (struct subgraph *sg,
+                     float (*arc_weight) (float *f1, float *f2, int n),
+                     enum METRIC m)
 {
-  int i, j;
-
   if (arc_weight)
-    sg->arc_weight = arc_weight;
-  else
-    subgraph_set_metric (sg, m);
-
-  sg->use_precomputed_distance = TRUE;
-  sg->distance_value = (float *) calloc (sg->node_n*sg->node_n, sizeof (float));
-
-  for (i = 0; i < sg->node_n; i++)
-    for (j = 0; j < sg->node_n; j++)
-      sg->distance_value[i*sg->node_n+j] = sg->arc_weight (sg->node[i].feat,
-                                                           sg->node[j].feat,
-                                                           sg->feat_n);
-}
-
-void
-subgraph_set_metric (struct subgraph *sg, enum METRIC m)
-{
-  sg->use_precomputed_distance = FALSE;
+    {
+      sg->arc_weight = arc_weight;
+      return;
+    }
 
   switch (m)
   {
@@ -306,18 +286,4 @@ subgraph_resize (struct subgraph * sg, int node_n)
   /* feat_data can change in realloc */
   for (i=0; i < sg->node_n; i++)
     sg->node[i].feat = &sg->feat_data[i*sg->feat_n];
-
-  /* resize distance table */
-  if (sg->use_precomputed_distance)
-    {
-      int i;
-      float *dt = (float *) calloc (sg->node_n*sg->node_n, sizeof (float));
-
-      /* reuse old values */
-      for (i=0; i < old_n; i++)
-        memcpy (&dt[i*sg->node_n], &sg->distance_value[i*old_n], old_n*sizeof(float));
-
-      free(sg->distance_value);
-      sg->distance_value = dt;
-    }
 }
