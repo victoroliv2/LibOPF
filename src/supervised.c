@@ -70,6 +70,8 @@ mst_prototypes (struct subgraph * sg)
   while (!real_heap_is_empty (Q))
     {
       real_heap_remove (Q, &p);
+      assert (p >= 0 && p < sg->node_n);
+
       sg->node[p].path_val = path_val[p];
 
       pred = sg->node[p].pred;
@@ -135,7 +137,7 @@ opf_supervised_train (struct subgraph * sg)
           sg->node[p].label = sg->node[p].label_true;
           real_heap_insert (Q, p);
         }
-      else                      // non-prototypes
+      else // non-prototypes
         {
           path_val[p] = FLT_MAX;
         }
@@ -146,6 +148,7 @@ opf_supervised_train (struct subgraph * sg)
   while (!real_heap_is_empty (Q))
     {
       real_heap_remove (Q, &p);
+      assert (p >= 0 && p < sg->node_n);
 
       sg->ordered_list_of_nodes[i] = p;
 
@@ -202,9 +205,13 @@ opf_supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, 
           float tmp, weight;
 
           l = sg_train->ordered_list_of_nodes[j];
+          assert (l >= 0 && l < sg_train->node_n);
 
-          weight = sg_train->arc_weight
-                     (sg_train->node[l].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
+          if (sg_train->pdist) /* feat is a distance matrix */
+            weight = feat[sg_train->node[l].position*sample_n+i];
+          else                 /* feat are feature vectors */
+            weight = sg_train->arc_weight
+                       (sg_train->node[l].feat, &feat[i*sg_train->feat_n], sg_train->feat_n);
 
           tmp = MAX (sg_train->node[l].path_val, weight);
           if (tmp < minCost)
@@ -223,6 +230,10 @@ static void
 supervised_classify_subgraph (struct subgraph * sg_train, struct subgraph * sg_eval)
 {
   int i;
+
+  assert (sg_train->pdist == sg_eval->pdist);
+  assert (sg_train->feat_n == sg_eval->feat_n);
+  assert (sg_train->arc_weight == sg_eval->arc_weight);
 
   omp_set_num_threads(NTHREADS);
   #pragma omp parallel for
@@ -243,9 +254,9 @@ supervised_classify_subgraph (struct subgraph * sg_train, struct subgraph * sg_e
           float tmp, weight;
 
           l = sg_train->ordered_list_of_nodes[j];
+          assert (l >= 0 && l < sg_train->node_n);
 
-          weight = sg_train->arc_weight
-                     (sg_train->node[l].feat, sg_eval->node[i].feat, sg_train->feat_n);
+          weight = subgraph_get_distance (sg_train, &sg_train->node[l], &sg_eval->node[i]);
 
           tmp = MAX (sg_train->node[l].path_val, weight);
           if (tmp < minCost)
@@ -321,8 +332,6 @@ subgraph_split_mirrored (struct subgraph * sg, float split,
   sg1->node_n = sg->node_n * split;
   sg2->node_n = sg->node_n - sg1->node_n;
 
-  sg1->feat_n = sg2->feat_n = sg->feat_n;
-
   sg1->node = &sg->node[0];
   sg2->node = &sg->node[sg1->node_n];
 
@@ -330,7 +339,11 @@ subgraph_split_mirrored (struct subgraph * sg, float split,
   sg2->ordered_list_of_nodes = &sg->ordered_list_of_nodes[sg1->node_n];
 
   sg1->arc_weight = sg2->arc_weight = sg->arc_weight;
-  sg1->feat_data = sg2->feat_data = sg->feat_data;
+  sg1->feat_data  = sg2->feat_data  = sg->feat_data;
+  sg1->feat_n     = sg2->feat_n     = sg->feat_n;
+
+  sg1->pdist                 = sg2->pdist                 = sg->pdist;
+  sg1->pdist_train_stride    = sg2->pdist_train_stride    = sg->pdist_train_stride;
 }
 
 #define ITER_MAX 10
@@ -358,6 +371,9 @@ opf_supervised_train_iterative (struct subgraph *sg, float split)
       i++;
     }
   while ((delta > FLT_EPSILON) && (i < ITER_MAX));
+
+  /* just the training part will remain */
+  subgraph_resize (sg, sg_train.node_n);
 }
 
 /* Move misclassified data from eval to sg */
@@ -413,9 +429,12 @@ opf_supervised_train_agglomerative (struct subgraph *sg, float split)
     do
       {
         n = 0;
-        opf_supervised_train (sg);
+        opf_supervised_train (&sg_train);
         supervised_classify_subgraph (&sg_train, &sg_eval);
         move_misclassified_nodes (&sg_train, &sg_eval, &n);
       }
     while(n > 0);
+
+  /* just the training part will remain */
+  subgraph_resize (sg, sg_train.node_n);
 }

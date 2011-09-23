@@ -73,12 +73,22 @@ struct subgraph
 
   float *feat_data; /* memory pointer to all features data */
   float (*arc_weight) (float *f1, float *f2, int n);
+
+  /* precomputed distance matrix */
+  float *pdist;
+  int pdist_train_stride; /* stride of training (pdist) distance matrix */
 };
+
+#define PDISTANCE(sg,i,j) ( (sg)->pdist[i*(sg)->pdist_train_stride +j] )
 
 struct subgraph * subgraph_create       (int node_n);     /* allocates nodes without features        */
 void              subgraph_destroy      (struct subgraph ** sg); /* deallocates memory for subgraph         */
 int               subgraph_set_feature  (struct subgraph *sg, float *feat, int *label, int feat_n);
 void              subgraph_set_metric   (struct subgraph *sg, float (*arc_weight) (float *f1, float *f2, int n), enum METRIC m);
+
+int               subgraph_set_precomputed_distance
+                                        (struct subgraph *sg, float *dist, int *label);
+
 void              subgraph_pdf_evaluate (struct subgraph * sg);
 
 void              subgraph_resize       (struct subgraph * sg, int node_n);
@@ -86,7 +96,10 @@ void              subgraph_resize       (struct subgraph * sg, int node_n);
 inline static
 float subgraph_get_distance (struct subgraph * sg, struct snode *i, struct snode *j)
 {
-  return sg->arc_weight(i->feat, j->feat, sg->feat_n);
+  if (sg->pdist)
+    return PDISTANCE(sg, i->position, j->position);
+  else
+    return sg->arc_weight(i->feat, j->feat, sg->feat_n);
 }
 
 #endif /* _SUBGRAPH_H_ */

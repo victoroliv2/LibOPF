@@ -42,7 +42,8 @@ def run(split):
     O = libopf_py.OPF()
 
     t = time.time()
-    O.fit(data_train_32, label_train_32, learning="agglomerative", split=0.8)
+    O.fit(data_train_32, label_train_32)
+#    O.fit(data_train_32, label_train_32, learning="agglomerative", split=0.8)
     print "OPF: time elapsed in fitting: %f secs" % (time.time()-t)
 
     t = time.time()
@@ -72,8 +73,4 @@ def run(split):
 
   _svm()
 
-run(0.1)
-run(0.2)
-run(0.4)
-run(0.6)
 run(0.8)

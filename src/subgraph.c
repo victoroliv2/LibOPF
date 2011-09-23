@@ -103,6 +103,11 @@ subgraph_create (int node_n)
       sg->node[i].position = i;
     }
 
+  sg->feat_data = NULL;
+
+  sg->pdist = NULL;
+  sg->pdist_train_stride    = INT_MAX; /* i want to segfault if it isn't used properly */
+
   return (sg);
 }
 
@@ -116,6 +121,9 @@ subgraph_destroy (struct subgraph ** sg)
     {
       if ((*sg)->feat_data)
         free ((*sg)->feat_data);
+
+      if ((*sg)->pdist)
+        free ((*sg)->pdist);
 
       for (i = 0; i < (*sg)->node_n; i++)
         {
@@ -201,6 +209,29 @@ subgraph_set_metric (struct subgraph *sg,
   }
 }
 
+
+int
+subgraph_set_precomputed_distance (struct subgraph *sg,
+                                   float *dist,
+                                   int *label)
+{
+  int i;
+
+  sg->pdist = (float *) calloc (sg->node_n*sg->node_n, sizeof(float));
+  sg->pdist_train_stride = sg->node_n;
+
+  if (!sg->pdist) return FALSE;
+
+  memcpy (sg->pdist, dist, sg->node_n*sg->node_n*sizeof(float));
+
+  if (label)
+    for (i = 0; i < sg->node_n; i++)
+      sg->node[i].label_true = label[i];
+
+  return TRUE;
+}
+
+
 // subgraph_pdf_evaluate computation
 void
 subgraph_pdf_evaluate (struct subgraph * sg)
@@ -268,13 +299,19 @@ subgraph_resize (struct subgraph * sg, int node_n)
                                                         sg->node_n*sizeof (struct snode));
   sg->ordered_list_of_nodes = (int *)          realloc (sg->ordered_list_of_nodes,
                                                         sg->node_n*sizeof (int));
-  sg->feat_data             = (float *)        realloc (sg->feat_data,
+  if (sg->feat_data)
+    sg->feat_data           = (float *)        realloc (sg->feat_data,
                                                         sg->node_n*sg->feat_n*sizeof(float));
 
   /* sanity */
-  memset (&sg->node[old_n],                   0xFF, (node_n-old_n)*sizeof (struct snode));
-  memset (&sg->ordered_list_of_nodes[old_n],  0xFF, (node_n-old_n)*sizeof (int));
-  memset (&sg->feat_data[old_n*sg->feat_n],   0xFF, (node_n-old_n)*sizeof (float));
+  if (node_n > old_n)
+    {
+      memset (&sg->node[old_n],                   0xFF, (sg->node_n-old_n)*sizeof (struct snode));
+      memset (&sg->ordered_list_of_nodes[old_n],  0xFF, (sg->node_n-old_n)*sizeof (int));
+
+      if (sg->feat_data)
+        memset (&sg->feat_data[old_n*sg->feat_n], 0xFF, (sg->node_n-old_n)*sizeof (float));
+    }
 
   /* clear new nodes */
   for (i=old_n; i < sg->node_n; i++)
@@ -284,6 +321,23 @@ subgraph_resize (struct subgraph * sg, int node_n)
     }
 
   /* feat_data can change in realloc */
-  for (i=0; i < sg->node_n; i++)
-    sg->node[i].feat = &sg->feat_data[i*sg->feat_n];
+  if (sg->feat_data)
+    for (i=0; i < sg->node_n; i++)
+      sg->node[i].feat = &sg->feat_data[i*sg->feat_n];
+
+  if (sg->pdist)
+    {
+      int i,j;
+
+      float *dt = (float *) calloc (sg->node_n*sg->node_n, sizeof (float));
+
+      for (i=0; i < sg->node_n; i++)
+        for (j=0; j < sg->node_n; j++)
+          dt[i*node_n+j] = PDISTANCE(sg, sg->node[i].position, sg->node[j].position);
+
+      free(sg->pdist);
+
+      sg->pdist = dt;
+      sg->pdist_train_stride = sg->node_n;
+    }
 }

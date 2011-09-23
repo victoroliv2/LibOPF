@@ -8,6 +8,7 @@ cdef class OPF:
 
   cdef libopf_py.subgraph * sg
   cdef bint supervised
+  cdef bint precomputed_distance
 
   cdef int node_n
   cdef int feat_n
@@ -15,6 +16,7 @@ cdef class OPF:
   def __cinit__(self):
       self.sg = NULL
       self.supervised = True
+      self.precomputed_distance = False
 
   def __dealloc__(self):
     if self.sg is not NULL:
@@ -24,7 +26,7 @@ cdef class OPF:
           np.ndarray[np.float32_t, ndim=2, mode='c'] X,
           np.ndarray[np.int32_t,   ndim=1, mode='c'] Y = None,
           learning="default", metric="euclidian",
-          bint use_precomputed_distance=False, float split=0.8):
+          bint precomputed_distance=False, float split=0.8):
 
       d = {
             "euclidian"          : libopf_py.EUCLIDIAN,
@@ -37,19 +39,22 @@ cdef class OPF:
             "bray_curtis"        : libopf_py.BRAY_CURTIS
           }
 
-      if X.shape[0] != Y.shape[0]:
-        raise Exception("Shape mismatch")
-
-      if use_precomputed_distance and X.shape[0] != X.shape[1]:
-        raise Exception("Distance matrix should be squared, but is (%s,%s)" % (X.shape[0], X.shape[1]))
-
       if Y != None:
         self.supervised = True
       else:
         self.supervised = False
 
+      self.precomputed_distance = precomputed_distance
+
       self.node_n = <int>X.shape[0]
       self.feat_n = <int>X.shape[1]
+
+      if X.shape[0] != Y.shape[0]:
+        raise Exception("Shape mismatch")
+
+      if self.precomputed_distance and X.shape[0] != X.shape[1]:
+        raise Exception("Distance matrix should be squared, but it's (%s,%s)" %
+                                                     (X.shape[0], X.shape[1]))
 
       if self.supervised:
         if learning not in ("default", "iterative", "agglomerative"):
@@ -59,14 +64,34 @@ cdef class OPF:
       if self.sg == NULL:
         raise MemoryError("Seems we've run out of of memory")
 
-      if self.supervised:
-        if not libopf_py.subgraph_set_feature (self.sg, <float*>X.data, <int*>Y.data, <int>X.shape[1]):
-          raise MemoryError("Seems we've run out of of memory")
-      else:
-        if not libopf_py.subgraph_set_feature (self.sg, <float*>X.data, NULL, <int>X.shape[1]):
-          raise MemoryError("Seems we've run out of of memory")
+      if self.precomputed_distance:
+        if self.supervised:
+          if not libopf_py.subgraph_set_precomputed_distance (self.sg,
+                                                              <float*>X.data,
+                                                              <int*>Y.data):
+            raise MemoryError("Seems we've run out of of memory")
+        else:
+          if not libopf_py.subgraph_set_precomputed_distance (self.sg,
+                                                              <float*>X.data,
+                                                              NULL):
+            raise MemoryError("Seems we've run out of of memory")
 
-      libopf_py.subgraph_set_metric (self.sg, NULL, d[metric])
+      else:
+
+        if self.supervised:
+          if not libopf_py.subgraph_set_feature (self.sg,
+                                                 <float*>X.data,
+                                                 <int*>Y.data,
+                                                 <int>X.shape[1]):
+            raise MemoryError("Seems we've run out of of memory")
+        else:
+          if not libopf_py.subgraph_set_feature (self.sg,
+                                                 <float*>X.data,
+                                                 NULL,
+                                                 <int>X.shape[1]):
+            raise MemoryError("Seems we've run out of of memory")
+
+        libopf_py.subgraph_set_metric (self.sg, NULL, d[metric])
 
       if self.supervised:
         if learning == "default":
@@ -82,17 +107,42 @@ cdef class OPF:
   def predict(self, np.ndarray[np.float32_t, ndim=2, mode='c'] X):
 
     cdef np.ndarray[np.int32_t, ndim=1, mode='c'] labels
-    labels = np.empty(X.shape[0], dtype=np.int32)
+
+    if self.precomputed_distance:
+      labels = np.empty(X.shape[1], dtype=np.int32)
+    else:
+      labels = np.empty(X.shape[0], dtype=np.int32)
 
     if self.supervised == None:
       raise Exception ("Not fitted!")
 
-    if X.shape[1] != self.feat_n:
+    if self.precomputed_distance and X.shape[0] != self.node_n:
+      raise Exception("Distance matrix shape is wrong")
+
+    if not self.precomputed_distance and X.shape[1] != self.feat_n:
       raise Exception("Feature matrix shape is wrong")
 
-    if self.supervised:
-      libopf_py.opf_supervised_classify (self.sg, <float*>X.data, <int>X.shape[0], <int*>labels.data)
+    if self.precomputed_distance:
+      if self.supervised:
+        libopf_py.opf_supervised_classify (self.sg,
+                                           <float*>X.data,
+                                           <int>X.shape[1],
+                                           <int*>labels.data)
+      else:
+        libopf_py.opf_unsupervised_knn_classify (self.sg,
+                                                 <float*>X.data,
+                                                 <int>X.shape[1],
+                                                 <int*>labels.data)
     else:
-      libopf_py.opf_unsupervised_knn_classify (self.sg, <float*>X.data, <int>X.shape[0], <int*>labels.data)
+      if self.supervised:
+        libopf_py.opf_supervised_classify (self.sg,
+                                           <float*>X.data,
+                                           <int>X.shape[0],
+                                           <int*>labels.data)
+      else:
+        libopf_py.opf_unsupervised_knn_classify (self.sg,
+                                                 <float*>X.data,
+                                                 <int>X.shape[0],
+                                                 <int*>labels.data)
 
     return labels
