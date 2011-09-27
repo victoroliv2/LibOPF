@@ -24,7 +24,7 @@ enum REMOVAL_POLICY
 
 struct real_heap
 {
-  float *cost;
+  double *cost;
   enum COLOR *color;
   int   *pixel;
   int   *pos;
@@ -33,14 +33,14 @@ struct real_heap
   enum REMOVAL_POLICY removal_policy;
 };
 
-struct     real_heap *real_heap_create  (int n, float *cost);
+struct     real_heap *real_heap_create  (int n, double *cost);
 void       real_heap_set_removal_policy (struct real_heap  * h, enum REMOVAL_POLICY policy);
 int        real_heap_is_full            (struct real_heap  * h);
 int        real_heap_is_empty           (struct real_heap  * h);
 void       real_heap_destroy            (struct real_heap ** h);
 int        real_heap_insert             (struct real_heap  * h, int  pixel);
 int        real_heap_remove             (struct real_heap  * h, int *pixel);
-void       real_heap_update             (struct real_heap  * h, int p, float value);
+void       real_heap_update             (struct real_heap  * h, int p, double value);
 void       real_heap_go_up              (struct real_heap  * h, int i);
 void       real_heap_go_down            (struct real_heap  * h, int i);
 void       real_heap_reset              (struct real_heap  * h);

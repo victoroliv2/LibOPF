@@ -2,18 +2,18 @@
 #include "measures.h"
 
 // Normalized cut
-float
+double
 subgraph_normalized_cut (struct subgraph * sg)
 {
   int l, p, q;
   struct set *Saux;
-  float ncut, dist;
-  float *acumIC;                //acumulate weights inside each class
-  float *acumEC;                //acumulate weights between the class and a distinct one
+  double ncut, dist;
+  double *acumIC;                //acumulate weights inside each class
+  double *acumEC;                //acumulate weights between the class and a distinct one
 
   ncut = 0.0;
-  acumIC = alloc_float (sg->label_n);
-  acumEC = alloc_float (sg->label_n);
+  acumIC = alloc_double (sg->label_n);
+  acumEC = alloc_double (sg->label_n);
 
   for (p = 0; p < sg->node_n; p++)
     {
@@ -40,7 +40,7 @@ subgraph_normalized_cut (struct subgraph * sg)
   for (l = 0; l < sg->label_n; l++)
     {
       if (acumIC[l] + acumEC[l] > 0.0)
-        ncut += (float) acumEC[l] / (acumIC[l] + acumEC[l]);
+        ncut += (double) acumEC[l] / (acumIC[l] + acumEC[l]);
     }
   free (acumEC);
   free (acumIC);

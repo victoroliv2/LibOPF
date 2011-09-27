@@ -44,19 +44,19 @@ static void
 mst_prototypes (struct subgraph * sg)
 {
   int p, q;
-  float weight;
+  double weight;
   struct real_heap *Q = NULL;
-  float *path_val = NULL;
+  double *path_val = NULL;
   int pred;
-  float nproto;
+  double nproto;
 
   // initialization
-  path_val = alloc_float (sg->node_n);
+  path_val = alloc_double (sg->node_n);
   Q = real_heap_create (sg->node_n, path_val);
 
   for (p = 0; p < sg->node_n; p++)
     {
-      path_val[p] = FLT_MAX;
+      path_val[p] = DBL_MAX;
       sg->node[p].status = STATUS_NOTHING;
     }
 
@@ -116,15 +116,15 @@ void
 opf_supervised_train (struct subgraph * sg)
 {
   int p, q, i;
-  float tmp, weight;
+  double tmp, weight;
   struct real_heap *Q = NULL;
-  float *path_val = NULL;
+  double *path_val = NULL;
 
   // compute optimum prototypes
   mst_prototypes (sg);
 
   // initialization
-  path_val = alloc_float (sg->node_n);
+  path_val = alloc_double (sg->node_n);
 
   Q = real_heap_create (sg->node_n, path_val);
 
@@ -139,7 +139,7 @@ opf_supervised_train (struct subgraph * sg)
         }
       else // non-prototypes
         {
-          path_val[p] = FLT_MAX;
+          path_val[p] = DBL_MAX;
         }
     }
 
@@ -182,7 +182,7 @@ opf_supervised_train (struct subgraph * sg)
 
 //Classification function: it simply classifies samples from sg -----
 void
-opf_supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, int *label)
+opf_supervised_classify (struct subgraph * sg_train, double *feat, int sample_n, int *label)
 {
   int i;
 
@@ -192,7 +192,7 @@ opf_supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, 
     {
       int c_label = -1;
       int j = 0;
-      float minCost = FLT_MAX;
+      double minCost = DBL_MAX;
 
       for (j=0;
 
@@ -202,7 +202,7 @@ opf_supervised_classify (struct subgraph * sg_train, float *feat, int sample_n, 
           j++)
         {
           int l;
-          float tmp, weight;
+          double tmp, weight;
 
           l = sg_train->ordered_list_of_nodes[j];
           assert (l >= 0 && l < sg_train->node_n);
@@ -241,7 +241,7 @@ supervised_classify_subgraph (struct subgraph * sg_train, struct subgraph * sg_e
     {
       int c_label = -1;
       int j = 0;
-      float minCost = FLT_MAX;
+      double minCost = DBL_MAX;
 
       for (j=0;
 
@@ -251,7 +251,7 @@ supervised_classify_subgraph (struct subgraph * sg_train, struct subgraph * sg_e
           j++)
         {
           int l;
-          float tmp, weight;
+          double tmp, weight;
 
           l = sg_train->ordered_list_of_nodes[j];
           assert (l >= 0 && l < sg_train->node_n);
@@ -271,7 +271,7 @@ supervised_classify_subgraph (struct subgraph * sg_train, struct subgraph * sg_e
 }
 
 
-static float
+static double
 accuracy (struct subgraph *sg)
 {
   int ok = 0;
@@ -280,7 +280,7 @@ accuracy (struct subgraph *sg)
   for (i=0; i < sg->node_n; i++)
     (sg->node[i].label == sg->node[i].label_true)? ok++ : 0;
 
-  return (float)(ok)/(float)(sg->node_n);
+  return (double)(ok)/(double)(sg->node_n);
 }
 
 /* Replace errors from evaluating set by non prototypes from training set */
@@ -323,7 +323,7 @@ swap_wrong_prototypes (struct subgraph *sg_train, struct subgraph *sg_eval)
 /* create two pointers to a subgraph data,
    this function is used in some training modes to reorganize nodes */
 static void
-subgraph_split_mirrored (struct subgraph * sg, float split,
+subgraph_split_mirrored (struct subgraph * sg, double split,
                          struct subgraph * sg1, struct subgraph * sg2)
 {
   memset (sg1, 0xFF, sizeof(struct subgraph));
@@ -349,10 +349,10 @@ subgraph_split_mirrored (struct subgraph * sg, float split,
 #define ITER_MAX 10
 
 void
-opf_supervised_train_iterative (struct subgraph *sg, float split)
+opf_supervised_train_iterative (struct subgraph *sg, double split)
 {
   int i = 0;
-  float acc = FLT_MIN, acc_prev = FLT_MIN, delta;
+  double acc = DBL_MIN, acc_prev = DBL_MIN, delta;
 
   struct subgraph sg_train, sg_eval;
   subgraph_split_mirrored (sg, split, &sg_train, &sg_eval);
@@ -370,7 +370,7 @@ opf_supervised_train_iterative (struct subgraph *sg, float split)
       delta = fabs(acc-acc_prev);
       i++;
     }
-  while ((delta > FLT_EPSILON) && (i < ITER_MAX));
+  while ((delta > DBL_EPSILON) && (i < ITER_MAX));
 
   /* just the training part will remain */
   subgraph_resize (sg, sg_train.node_n);
@@ -419,7 +419,7 @@ move_misclassified_nodes (struct subgraph *sg_train, struct subgraph *sg_eval, i
 }
 
 void
-opf_supervised_train_agglomerative (struct subgraph *sg, float split)
+opf_supervised_train_agglomerative (struct subgraph *sg, double split)
 {
     int n;
     struct subgraph sg_train, sg_eval;

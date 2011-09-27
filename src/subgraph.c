@@ -47,8 +47,8 @@ snode_clear (struct snode *n)
 void
 snode_copy (struct snode * dest, struct snode * src, int feat_n)
 {
-  dest->feat = alloc_float (feat_n);
-  memcpy (dest->feat, src->feat, feat_n * sizeof (float));
+  dest->feat = alloc_double (feat_n);
+  memcpy (dest->feat, src->feat, feat_n * sizeof (double));
   dest->path_val = src->path_val;
   dest->dens = src->dens;
   dest->label = src->label;
@@ -138,22 +138,22 @@ subgraph_destroy (struct subgraph ** sg)
 }
 
 int
-subgraph_set_feature (struct subgraph *sg, float *feat, int *label, int feat_n)
+subgraph_set_feature (struct subgraph *sg, double *feat, int *label, int feat_n)
 {
   int i;
   sg->feat_n = feat_n;
 
-  sg->feat_data = (float *) calloc (sg->node_n*sg->feat_n, sizeof(float));
+  sg->feat_data = (double *) calloc (sg->node_n*sg->feat_n, sizeof(double));
 
   if (!sg->feat_data) return FALSE;
 
   // 0xFF (nan) for sanity!
-  memset (sg->feat_data, 0xFF, sg->node_n*sg->feat_n*sizeof(float));
+  memset (sg->feat_data, 0xFF, sg->node_n*sg->feat_n*sizeof(double));
 
   for (i = 0; i < sg->node_n; i++)
     {
-      float *chunk = &sg->feat_data[i*sg->feat_n];
-      memcpy (chunk, &feat[sg->feat_n*i], sg->feat_n*sizeof(float));
+      double *chunk = &sg->feat_data[i*sg->feat_n];
+      memcpy (chunk, &feat[sg->feat_n*i], sg->feat_n*sizeof(double));
       sg->node[i].feat  = chunk;
       if (label) sg->node[i].label_true = label[i];
     }
@@ -163,7 +163,7 @@ subgraph_set_feature (struct subgraph *sg, float *feat, int *label, int feat_n)
 
 void
 subgraph_set_metric (struct subgraph *sg,
-                     float (*arc_weight) (float *f1, float *f2, int n),
+                     double (*arc_weight) (double *f1, double *f2, int n),
                      enum METRIC m)
 {
   if (arc_weight)
@@ -212,17 +212,17 @@ subgraph_set_metric (struct subgraph *sg,
 
 int
 subgraph_set_precomputed_distance (struct subgraph *sg,
-                                   float *dist,
+                                   double *dist,
                                    int *label)
 {
   int i;
 
-  sg->pdist = (float *) calloc (sg->node_n*sg->node_n, sizeof(float));
+  sg->pdist = (double *) calloc (sg->node_n*sg->node_n, sizeof(double));
   sg->pdist_train_stride = sg->node_n;
 
   if (!sg->pdist) return FALSE;
 
-  memcpy (sg->pdist, dist, sg->node_n*sg->node_n*sizeof(float));
+  memcpy (sg->pdist, dist, sg->node_n*sg->node_n*sizeof(double));
 
   if (label)
     for (i = 0; i < sg->node_n; i++)
@@ -238,10 +238,10 @@ subgraph_pdf_evaluate (struct subgraph * sg)
 {
   int i, nelems;
   double dist;
-  float *value = alloc_float (sg->node_n);
+  double *value = alloc_double (sg->node_n);
   struct set *adj = NULL;
 
-  sg->k = (2.0 * (float) sg->df / 9.0);
+  sg->k = (2.0 * (double) sg->df / 9.0);
   sg->dens_min = FLT_MAX;
   sg->dens_max = FLT_MIN;
   for (i = 0; i < sg->node_n; i++)
@@ -258,7 +258,7 @@ subgraph_pdf_evaluate (struct subgraph * sg)
           nelems++;
         }
 
-      value[i] = (value[i] / (float) nelems);
+      value[i] = (value[i] / (double) nelems);
 
       if (value[i] < sg->dens_min)
         sg->dens_min = value[i];
@@ -279,8 +279,8 @@ subgraph_pdf_evaluate (struct subgraph * sg)
       for (i = 0; i < sg->node_n; i++)
         {
           sg->node[i].dens =
-            ((float) (DENS_MAX - 1) * (value[i] - sg->dens_min) /
-             (float) (sg->dens_max - sg->dens_min)) + 1.0;
+            ((double) (DENS_MAX - 1) * (value[i] - sg->dens_min) /
+             (double) (sg->dens_max - sg->dens_min)) + 1.0;
           sg->node[i].path_val = sg->node[i].dens - 1;
         }
     }
@@ -300,8 +300,8 @@ subgraph_resize (struct subgraph * sg, int node_n)
   sg->ordered_list_of_nodes = (int *)          realloc (sg->ordered_list_of_nodes,
                                                         sg->node_n*sizeof (int));
   if (sg->feat_data)
-    sg->feat_data           = (float *)        realloc (sg->feat_data,
-                                                        sg->node_n*sg->feat_n*sizeof(float));
+    sg->feat_data           = (double *)        realloc (sg->feat_data,
+                                                        sg->node_n*sg->feat_n*sizeof(double));
 
   /* sanity */
   if (node_n > old_n)
@@ -310,7 +310,7 @@ subgraph_resize (struct subgraph * sg, int node_n)
       memset (&sg->ordered_list_of_nodes[old_n],  0xFF, (sg->node_n-old_n)*sizeof (int));
 
       if (sg->feat_data)
-        memset (&sg->feat_data[old_n*sg->feat_n], 0xFF, (sg->node_n-old_n)*sizeof (float));
+        memset (&sg->feat_data[old_n*sg->feat_n], 0xFF, (sg->node_n-old_n)*sizeof (double));
     }
 
   /* clear new nodes */
@@ -329,7 +329,7 @@ subgraph_resize (struct subgraph * sg, int node_n)
     {
       int i,j;
 
-      float *dt = (float *) calloc (sg->node_n*sg->node_n, sizeof (float));
+      double *dt = (double *) calloc (sg->node_n*sg->node_n, sizeof (double));
 
       for (i=0; i < sg->node_n; i++)
         for (j=0; j < sg->node_n; j++)

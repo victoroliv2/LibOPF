@@ -6,10 +6,10 @@
 #undef  __METRICS_MAIN__
 
 /* euclidean */
-  float d_eucl (float *f1, float *f2, int n)
+  double d_eucl (double *f1, double *f2, int n)
 {
   int     i;
-  float   dist = 0.0f;
+  double   dist = 0.0f;
 
   for (i = 0; i < n; i++)
     dist += (f1[i] - f2[i]) * (f1[i] - f2[i]);
@@ -18,17 +18,17 @@
 }
 
 /* log-euclidian */
-  float d_eucl_log (float *f1, float *f2, int n)
+  double d_eucl_log (double *f1, double *f2, int n)
 {
-  return (((float) ARCW_MAX * log (d_eucl (f1, f2, n) + 1)));
+  return (((double) ARCW_MAX * log (d_eucl (f1, f2, n) + 1)));
 }
 
 /* gaussian */
 /*
-  float d_gauss (float *f1, float *f2, int n, float gamma)
+  double d_gauss (double *f1, double *f2, int n, double gamma)
 {
   int     i;
-  float   dist = 0.0f;
+  double   dist = 0.0f;
 
   for (i = 0; i < n; i++)
     dist += (f1[i] - f2[i]) * (f1[i] - f2[i]);
@@ -40,10 +40,10 @@
 */
 
 /* chi-squared */
-  float d_chi_square (float *f1, float *f2, int n)
+  double d_chi_square (double *f1, double *f2, int n)
 {
   int     i;
-  float   dist = 0.0f, sf1 = 0.0f, sf2 = 0.0f;
+  double   dist = 0.0f, sf1 = 0.0f, sf2 = 0.0f;
 
   for (i = 0; i < n; i++)
     {
@@ -59,10 +59,10 @@
 }
 
 /* manhattan */
-  float d_manhattan (float *f1, float *f2, int n)
+  double d_manhattan (double *f1, double *f2, int n)
 {
   int     i;
-  float   dist = 0.0f;
+  double   dist = 0.0f;
 
   for (i = 0; i < n; i++)
     dist += fabs (f1[i] - f2[i]);
@@ -71,10 +71,10 @@
 }
 
 /* camberra */
-  float d_canberra (float *f1, float *f2, int n)
+  double d_canberra (double *f1, double *f2, int n)
 {
   int     i;
-  float   dist = 0.0f, aux;
+  double   dist = 0.0f, aux;
 
   for (i = 0; i < n; i++)
     {
@@ -87,10 +87,10 @@
 }
 
 /* squared chord */
-  float d_squared_chord (float *f1, float *f2, int n)
+  double d_squared_chord (double *f1, double *f2, int n)
 {
   int     i;
-  float   dist = 0.0f, aux1, aux2;
+  double   dist = 0.0f, aux1, aux2;
 
   for (i = 0; i < n; i++)
     {
@@ -105,10 +105,10 @@
 }
 
 /* squared chi-squared */
-  float d_squared_chi_square (float *f1, float *f2, int n)
+  double d_squared_chi_square (double *f1, double *f2, int n)
 {
   int     i;
-  float   dist = 0.0f, aux;
+  double   dist = 0.0f, aux;
 
   for (i = 0; i < n; i++)
     {
@@ -121,10 +121,10 @@
 }
 
 /* bray curtis */
-  float d_bray_curtis (float *f1, float *f2, int n)
+  double d_bray_curtis (double *f1, double *f2, int n)
 {
   int     i;
-  float   dist = 0.0f, aux;
+  double   dist = 0.0f, aux;
 
   for (i = 0; i < n; i++)
     {

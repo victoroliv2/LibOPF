@@ -36,20 +36,19 @@ def run(split):
   print "-"*20, "OPF", "-"*20
   def opf():
 
-    dist_train_32  = dist_train.astype (numpy.float32)
+    # OPF only supports 32 bits labels at the moment
     label_train_32 = label_train.astype(numpy.int32)
-    dist_test_32   = dist_test.astype  (numpy.float32)
-    label_test_32  = label_test.astype (numpy.int32)
+    label_test_32  = label_test.astype(numpy.int32)
 
     O = libopf_py.OPF()
 
     t = time.time()
-#    O.fit(dist_train_32, label_train_32, precomputed_distance=True)
-    O.fit(dist_train_32, label_train_32, precomputed_distance=True, learning="agglomerative", split=0.8)
+    O.fit(dist_train, label_train_32, precomputed_distance=True)
+#    O.fit(dist_train, label_train_32, precomputed_distance=True, learning="agglomerative", split=0.8)
     print "OPF: time elapsed in fitting: %f secs" % (time.time()-t)
 
     t = time.time()
-    predicted = O.predict(dist_test_32)
+    predicted = O.predict(dist_test)
     print "OPF: time elapsed in predicting: %f secs" % (time.time()-t)
 
     print "Classification report for OPF:\n%s\n" % (metrics.classification_report(label_test_32, predicted))

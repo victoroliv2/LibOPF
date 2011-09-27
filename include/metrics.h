@@ -2,23 +2,23 @@
 #define _METRICS_H_
 
 #ifdef __METRICS_MAIN__
-float d_eucl                (float *f1, float *f2, int n);
-float d_eucl_log            (float *f1, float *f2, int n);
-float d_chi_square          (float *f1, float *f2, int n);
-float d_manhattan           (float *f1, float *f2, int n);
-float d_canberra            (float *f1, float *f2, int n);
-float d_squared_chord       (float *f1, float *f2, int n);
-float d_squared_chi_square  (float *f1, float *f2, int n);
-float d_bray_curtis         (float *f1, float *f2, int n);
+double d_eucl                (double *f1, double *f2, int n);
+double d_eucl_log            (double *f1, double *f2, int n);
+double d_chi_square          (double *f1, double *f2, int n);
+double d_manhattan           (double *f1, double *f2, int n);
+double d_canberra            (double *f1, double *f2, int n);
+double d_squared_chord       (double *f1, double *f2, int n);
+double d_squared_chi_square  (double *f1, double *f2, int n);
+double d_bray_curtis         (double *f1, double *f2, int n);
 #else
-extern float d_eucl                (float *f1, float *f2, int n);
-extern float d_eucl_log            (float *f1, float *f2, int n);
-extern float d_chi_square          (float *f1, float *f2, int n);
-extern float d_manhattan           (float *f1, float *f2, int n);
-extern float d_canberra            (float *f1, float *f2, int n);
-extern float d_squared_chord       (float *f1, float *f2, int n);
-extern float d_squared_chi_square  (float *f1, float *f2, int n);
-extern float d_bray_curtis         (float *f1, float *f2, int n);
+extern double d_eucl                (double *f1, double *f2, int n);
+extern double d_eucl_log            (double *f1, double *f2, int n);
+extern double d_chi_square          (double *f1, double *f2, int n);
+extern double d_manhattan           (double *f1, double *f2, int n);
+extern double d_canberra            (double *f1, double *f2, int n);
+extern double d_squared_chord       (double *f1, double *f2, int n);
+extern double d_squared_chi_square  (double *f1, double *f2, int n);
+extern double d_bray_curtis         (double *f1, double *f2, int n);
 #endif
 
 #endif

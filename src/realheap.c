@@ -114,7 +114,7 @@ real_heap_is_empty (struct real_heap * H)
 }
 
 struct real_heap *
-real_heap_create (int n, float *cost)
+real_heap_create (int n, double *cost)
 {
   struct real_heap *H = NULL;
   int i;
@@ -205,7 +205,7 @@ real_heap_remove (struct real_heap * H, int *pixel)
 
 
 void
-real_heap_update (struct real_heap * H, int p, float value)
+real_heap_update (struct real_heap * H, int p, double value)
 {
   H->cost[p] = value;
 

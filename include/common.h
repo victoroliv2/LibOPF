@@ -47,7 +47,7 @@ static inline void SWAP (int *x, int *y)
 /* Generates a random number within [low,high] */
 int random_int (int low, int high);
 
-float *alloc_float (size_t n);
+double *alloc_double (size_t n);
 
 int *alloc_int (size_t n);
 

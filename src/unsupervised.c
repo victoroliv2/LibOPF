@@ -38,9 +38,9 @@ void
 opf_best_k_min_cut (struct subgraph * sg, int kmin, int kmax)
 {
   int k, k_best = kmax;
-  float mincut = FLT_MAX, nc;
+  double mincut = DBL_MAX, nc;
 
-  float *maxdists = subgraph_knn_max_distances_evaluate (sg, kmax); // stores the maximum distances for every k=1,2,...,kmax
+  double *maxdists = subgraph_knn_max_distances_evaluate (sg, kmax); // stores the maximum distances for every k=1,2,...,kmax
 
   // Find the best k
   for (k = kmin; (k <= kmax) && (mincut != 0.0); k++)
@@ -81,7 +81,7 @@ opf_unsupervised_clustering (struct subgraph * sg)
   char insert_i;
   int i, j;
   int p, q, l;
-  float tmp, *path_val = NULL;
+  double tmp, *path_val = NULL;
   struct real_heap *Q = NULL;
   struct set *Saux = NULL;
 
@@ -115,7 +115,7 @@ opf_unsupervised_clustering (struct subgraph * sg)
 
   // Compute clustering
 
-  path_val = alloc_float (sg->node_n);
+  path_val = alloc_double (sg->node_n);
   Q = real_heap_create (sg->node_n, path_val);
   real_heap_set_removal_policy (Q, REMOVAL_POLICY_MAX);
 
@@ -170,10 +170,10 @@ opf_unsupervised_clustering (struct subgraph * sg)
 // the OPF-clustering labels from sg_train
 
 void
-opf_unsupervised_knn_classify (struct subgraph * sg_train, float *feat, int sample_n, int *label)
+opf_unsupervised_knn_classify (struct subgraph * sg_train, double *feat, int sample_n, int *label)
 {
   int i, j;
-  float weight;
+  double weight;
 
   for (i = 0; i < sample_n; i++)
     {

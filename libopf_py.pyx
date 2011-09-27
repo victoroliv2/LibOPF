@@ -23,10 +23,10 @@ cdef class OPF:
       libopf_py.subgraph_destroy (&self.sg)
 
   def fit (self,
-          np.ndarray[np.float32_t, ndim=2, mode='c'] X,
+          np.ndarray[np.float64_t, ndim=2, mode='c'] X,
           np.ndarray[np.int32_t,   ndim=1, mode='c'] Y = None,
           learning="default", metric="euclidian",
-          bint precomputed_distance=False, float split=0.8):
+          bint precomputed_distance=False, double split=0.8):
 
       d = {
             "euclidian"          : libopf_py.EUCLIDIAN,
@@ -67,12 +67,12 @@ cdef class OPF:
       if self.precomputed_distance:
         if self.supervised:
           if not libopf_py.subgraph_set_precomputed_distance (self.sg,
-                                                              <float*>X.data,
+                                                              <double*>X.data,
                                                               <int*>Y.data):
             raise MemoryError("Seems we've run out of of memory")
         else:
           if not libopf_py.subgraph_set_precomputed_distance (self.sg,
-                                                              <float*>X.data,
+                                                              <double*>X.data,
                                                               NULL):
             raise MemoryError("Seems we've run out of of memory")
 
@@ -80,13 +80,13 @@ cdef class OPF:
 
         if self.supervised:
           if not libopf_py.subgraph_set_feature (self.sg,
-                                                 <float*>X.data,
+                                                 <double*>X.data,
                                                  <int*>Y.data,
                                                  <int>X.shape[1]):
             raise MemoryError("Seems we've run out of of memory")
         else:
           if not libopf_py.subgraph_set_feature (self.sg,
-                                                 <float*>X.data,
+                                                 <double*>X.data,
                                                  NULL,
                                                  <int>X.shape[1]):
             raise MemoryError("Seems we've run out of of memory")
@@ -104,7 +104,7 @@ cdef class OPF:
         libopf_py.opf_best_k_min_cut (self.sg, 1, 10)
         libopf_py.opf_unsupervised_clustering (self.sg)
 
-  def predict(self, np.ndarray[np.float32_t, ndim=2, mode='c'] X):
+  def predict(self, np.ndarray[np.float64_t, ndim=2, mode='c'] X):
 
     cdef np.ndarray[np.int32_t, ndim=1, mode='c'] labels
 
@@ -125,23 +125,23 @@ cdef class OPF:
     if self.precomputed_distance:
       if self.supervised:
         libopf_py.opf_supervised_classify (self.sg,
-                                           <float*>X.data,
+                                           <double*>X.data,
                                            <int>X.shape[1],
                                            <int*>labels.data)
       else:
         libopf_py.opf_unsupervised_knn_classify (self.sg,
-                                                 <float*>X.data,
+                                                 <double*>X.data,
                                                  <int>X.shape[1],
                                                  <int*>labels.data)
     else:
       if self.supervised:
         libopf_py.opf_supervised_classify (self.sg,
-                                           <float*>X.data,
+                                           <double*>X.data,
                                            <int>X.shape[0],
                                            <int*>labels.data)
       else:
         libopf_py.opf_unsupervised_knn_classify (self.sg,
-                                                 <float*>X.data,
+                                                 <double*>X.data,
                                                  <int>X.shape[0],
                                                  <int*>labels.data)
 

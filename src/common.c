@@ -32,10 +32,10 @@ random_int (int low, int high)
   return low + k;
 }
 
-float *
-alloc_float (size_t n)
+double *
+alloc_double (size_t n)
 {
-  return (float *) malloc (n*sizeof(float));
+  return (double *) malloc (n*sizeof(double));
 }
 
 int *

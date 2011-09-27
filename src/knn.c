@@ -8,9 +8,9 @@ void
 subgraph_knn_create (struct subgraph * sg, int knn)
 {
   int i, j, l, k;
-  float dist;
+  double dist;
   int *nn = alloc_int (knn + 1);
-  float *d = alloc_float (knn + 1);
+  double *d = alloc_double (knn + 1);
 
   /* Create graph with the knn-nearest neighbors */
 
@@ -18,7 +18,7 @@ subgraph_knn_create (struct subgraph * sg, int knn)
   for (i = 0; i < sg->node_n; i++)
     {
       for (l = 0; l < knn; l++)
-        d[l] = FLT_MAX;
+        d[l] = DBL_MAX;
       for (j = 0; j < sg->node_n; j++)
         {
           if (j != i)
@@ -61,21 +61,21 @@ subgraph_knn_create (struct subgraph * sg, int knn)
 
 // Returns an array with the maximum distances
 // for each k=1,2,...,kmax
-float *
+double *
 subgraph_knn_max_distances_evaluate (struct subgraph * sg, int kmax)
 {
   int i, j, l, k;
-  float dist;
+  double dist;
   int *nn = alloc_int (kmax + 1);
-  float *d = alloc_float (kmax + 1);
-  float *maxdists = alloc_float (kmax);
+  double *d = alloc_double (kmax + 1);
+  double *maxdists = alloc_double (kmax);
   /* Create graph with the knn-nearest neighbors */
 
   sg->df = 0.0;
   for (i = 0; i < sg->node_n; i++)
     {
       for (l = 0; l < kmax; l++)
-        d[l] = FLT_MAX;
+        d[l] = DBL_MAX;
       for (j = 0; j < sg->node_n; j++)
         {
           if (j != i)
@@ -101,7 +101,7 @@ subgraph_knn_max_distances_evaluate (struct subgraph * sg, int kmax)
       //making sure that the adjacent nodes be sorted in non-decreasing order
       for (l = kmax - 1; l >= 0; l--)
         {
-          if (d[l] != FLT_MAX)
+          if (d[l] != DBL_MAX)
             {
               if (d[l] > sg->df)
                 sg->df = d[l];
@@ -145,7 +145,7 @@ subgraph_k_max_clustering (struct subgraph * sg)
   int i, j;
   int p, q, l, ki, kj;
   const int kmax = sg->k_best;
-  float tmp, *path_val = NULL;
+  double tmp, *path_val = NULL;
   struct real_heap *Q = NULL;
   struct set *Saux = NULL;
 
@@ -188,7 +188,7 @@ subgraph_k_max_clustering (struct subgraph * sg)
 
   // Compute clustering
 
-  path_val = alloc_float (sg->node_n);
+  path_val = alloc_double (sg->node_n);
   Q = real_heap_create (sg->node_n, path_val);
   real_heap_set_removal_policy (Q, REMOVAL_POLICY_MAX);
 
@@ -249,13 +249,13 @@ subgraph_k_max_pdf (struct subgraph * sg)
   int i, nelems;
   const int kmax = sg->k_best;
   double dist;
-  float *value = alloc_float (sg->node_n);
+  double *value = alloc_double (sg->node_n);
   struct set *adj = NULL;
 
-  sg->k = (2.0 * (float) sg->df / 9.0);
+  sg->k = (2.0 * (double) sg->df / 9.0);
 
-  sg->dens_min = FLT_MAX;
-  sg->dens_max = FLT_MIN;
+  sg->dens_min = DBL_MAX;
+  sg->dens_max = DBL_MIN;
   for (i = 0; i < sg->node_n; i++)
     {
       adj = sg->node[i].adj;
@@ -274,7 +274,7 @@ subgraph_k_max_pdf (struct subgraph * sg)
           nelems++;
         }
 
-      value[i] = (value[i] / (float) nelems);
+      value[i] = (value[i] / (double) nelems);
 
       if (value[i] < sg->dens_min)
         sg->dens_min = value[i];
@@ -295,8 +295,8 @@ subgraph_k_max_pdf (struct subgraph * sg)
       for (i = 0; i < sg->node_n; i++)
         {
           sg->node[i].dens =
-            ((float) (DENS_MAX - 1) * (value[i] - sg->dens_min) /
-             (float) (sg->dens_max - sg->dens_min)) + 1.0;
+            ((double) (DENS_MAX - 1) * (value[i] - sg->dens_min) /
+             (double) (sg->dens_max - sg->dens_min)) + 1.0;
           sg->node[i].path_val = sg->node[i].dens - 1;
         }
     }
@@ -304,19 +304,19 @@ subgraph_k_max_pdf (struct subgraph * sg)
 }
 
 // Normalized cut computed only for sg->k_best neighbors
-float
+double
 subgraph_k_max_normalized_cut (struct subgraph * sg)
 {
   int l, p, q, k;
   const int kmax = sg->k_best;
   struct set *Saux;
-  float ncut, dist;
-  float *acumIC;                //acumulate weights inside each class
-  float *acumEC;                //acumulate weights between the class and a distinct one
+  double ncut, dist;
+  double *acumIC;                //acumulate weights inside each class
+  double *acumEC;                //acumulate weights between the class and a distinct one
 
   ncut = 0.0;
-  acumIC = alloc_float (sg->label_n);
-  acumEC = alloc_float (sg->label_n);
+  acumIC = alloc_double (sg->label_n);
+  acumEC = alloc_double (sg->label_n);
 
   for (p = 0; p < sg->node_n; p++)
     {
@@ -346,7 +346,7 @@ subgraph_k_max_normalized_cut (struct subgraph * sg)
   for (l = 0; l < sg->label_n; l++)
     {
       if (acumIC[l] + acumEC[l] > 0.0)
-        ncut += (float) acumEC[l] / (acumIC[l] + acumEC[l]);
+        ncut += (double) acumEC[l] / (acumIC[l] + acumEC[l]);
     }
   free (acumEC);
   free (acumIC);
