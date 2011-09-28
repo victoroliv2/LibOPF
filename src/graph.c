@@ -22,7 +22,7 @@
 #include "common.h"
 #include "knn.h"
 #include "metrics.h"
-#include "subgraph.h"
+#include "graph.h"
 
 /*----------- Constructor and destructor ------------------------*/
 //Copy nodes
@@ -75,16 +75,16 @@ snode_swap (struct snode * a, struct snode * b)
 }
 
 // Allocate nodes without features
-struct subgraph *
-subgraph_create (int node_n)
+struct opf_graph *
+opf_graph_create (int node_n)
 {
-  struct subgraph *sg = (struct subgraph *) calloc (1, sizeof (struct subgraph));
+  struct opf_graph *sg = (struct opf_graph *) calloc (1, sizeof (struct opf_graph));
 
   int i;
 
   if (!sg) return NULL;
 
-  memset (sg, 0xFF, sizeof (struct subgraph));
+  memset (sg, 0xFF, sizeof (struct opf_graph));
 
   sg->node_n = node_n;
 
@@ -111,9 +111,9 @@ subgraph_create (int node_n)
   return (sg);
 }
 
-// Deallocate memory for subgraph
+// Deallocate memory for opf_graph
 void
-subgraph_destroy (struct subgraph ** sg)
+opf_graph_destroy (struct opf_graph ** sg)
 {
   int i;
 
@@ -138,7 +138,7 @@ subgraph_destroy (struct subgraph ** sg)
 }
 
 int
-subgraph_set_feature (struct subgraph *sg, double *feat, int *label, int feat_n)
+opf_graph_set_feature (struct opf_graph *sg, double *feat, int *label, int feat_n)
 {
   int i;
   sg->feat_n = feat_n;
@@ -162,7 +162,7 @@ subgraph_set_feature (struct subgraph *sg, double *feat, int *label, int feat_n)
 }
 
 void
-subgraph_set_metric (struct subgraph *sg,
+opf_graph_set_metric (struct opf_graph *sg,
                      double (*arc_weight) (double *f1, double *f2, int n),
                      enum METRIC m)
 {
@@ -211,7 +211,7 @@ subgraph_set_metric (struct subgraph *sg,
 
 
 int
-subgraph_set_precomputed_distance (struct subgraph *sg,
+opf_graph_set_precomputed_distance (struct opf_graph *sg,
                                    double *dist,
                                    int *label)
 {
@@ -232,9 +232,9 @@ subgraph_set_precomputed_distance (struct subgraph *sg,
 }
 
 
-// subgraph_pdf_evaluate computation
+// opf_graph_pdf_evaluate computation
 void
-subgraph_pdf_evaluate (struct subgraph * sg)
+opf_graph_pdf_evaluate (struct opf_graph * sg)
 {
   int i, nelems;
   double dist;
@@ -251,7 +251,7 @@ subgraph_pdf_evaluate (struct subgraph * sg)
       nelems = 1;
       while (adj != NULL)
         {
-          dist = subgraph_get_distance (sg, &sg->node[i], &sg->node[adj->elem]);
+          dist = opf_graph_get_distance (sg, &sg->node[i], &sg->node[adj->elem]);
 
           value[i] += exp (-dist / sg->k);
           adj = adj->next;
@@ -289,7 +289,7 @@ subgraph_pdf_evaluate (struct subgraph * sg)
 
 /* this function doesn't update the new values in the distance table */
 void
-subgraph_resize (struct subgraph * sg, int node_n)
+opf_graph_resize (struct opf_graph * sg, int node_n)
 {
   int i;
   int old_n = sg->node_n;

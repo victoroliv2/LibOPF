@@ -1,8 +1,8 @@
 #ifndef _MEASURES_H_
 #define _MEASURES_H_
 
-#include "subgraph.h"
+#include "graph.h"
 
-double   subgraph_normalized_cut   (struct subgraph * sg);
+double   opf_graph_normalized_cut   (struct opf_graph * sg);
 
 #endif

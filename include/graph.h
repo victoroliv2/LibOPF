@@ -56,9 +56,9 @@ enum METRIC
   NO_METRIC          = 8
 };
 
-struct subgraph
+struct opf_graph
 {
-  struct snode  *node;           /* nodes of the image/scene subgraph                   */
+  struct snode  *node;           /* nodes of the image/scene opf_graph                   */
   int     node_n;                /* number of nodes                                     */
   int     feat_n;                /* number of features                                  */
   int     k_best;                /* number of adjacent nodes                            */
@@ -81,20 +81,20 @@ struct subgraph
 
 #define PDISTANCE(sg,i,j) ( (sg)->pdist[i*(sg)->pdist_train_stride +j] )
 
-struct subgraph * subgraph_create       (int node_n);     /* allocates nodes without features        */
-void              subgraph_destroy      (struct subgraph ** sg); /* deallocates memory for subgraph         */
-int               subgraph_set_feature  (struct subgraph *sg, double *feat, int *label, int feat_n);
-void              subgraph_set_metric   (struct subgraph *sg, double (*arc_weight) (double *f1, double *f2, int n), enum METRIC m);
+struct opf_graph * opf_graph_create       (int node_n);     /* allocates nodes without features        */
+void              opf_graph_destroy      (struct opf_graph ** sg); /* deallocates memory for opf_graph         */
+int               opf_graph_set_feature  (struct opf_graph *sg, double *feat, int *label, int feat_n);
+void              opf_graph_set_metric   (struct opf_graph *sg, double (*arc_weight) (double *f1, double *f2, int n), enum METRIC m);
 
-int               subgraph_set_precomputed_distance
-                                        (struct subgraph *sg, double *dist, int *label);
+int               opf_graph_set_precomputed_distance
+                                        (struct opf_graph *sg, double *dist, int *label);
 
-void              subgraph_pdf_evaluate (struct subgraph * sg);
+void              opf_graph_pdf_evaluate (struct opf_graph * sg);
 
-void              subgraph_resize       (struct subgraph * sg, int node_n);
+void              opf_graph_resize       (struct opf_graph * sg, int node_n);
 
 inline static
-double subgraph_get_distance (struct subgraph * sg, struct snode *i, struct snode *j)
+double opf_graph_get_distance (struct opf_graph * sg, struct snode *i, struct snode *j)
 {
   if (sg->pdist)
     return PDISTANCE(sg, i->position, j->position);

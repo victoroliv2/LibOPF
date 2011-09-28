@@ -3,7 +3,7 @@
 
 // Normalized cut
 double
-subgraph_normalized_cut (struct subgraph * sg)
+opf_graph_normalized_cut (struct opf_graph * sg)
 {
   int l, p, q;
   struct set *Saux;
@@ -21,7 +21,7 @@ subgraph_normalized_cut (struct subgraph * sg)
         {
           q = Saux->elem;
 
-          dist = subgraph_get_distance (sg, &sg->node[p], &sg->node[q]);
+          dist = opf_graph_get_distance (sg, &sg->node[p], &sg->node[q]);
 
           if (dist > 0.0)
             {

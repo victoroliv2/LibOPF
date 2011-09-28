@@ -30,7 +30,7 @@
 
 #include "common.h"
 #include "set.h"
-#include "subgraph.h"
+#include "graph.h"
 #include "realheap.h"
 #include "metrics.h"
 #include "measures.h"
@@ -41,7 +41,7 @@
 
 // Find prototypes by the MST approach
 static void
-mst_prototypes (struct subgraph * sg)
+mst_prototypes (struct opf_graph * sg)
 {
   int p, q;
   double weight;
@@ -96,7 +96,7 @@ mst_prototypes (struct subgraph * sg)
             {
               if (p != q)
                 {
-                  weight = subgraph_get_distance (sg, &sg->node[p], &sg->node[q]);
+                  weight = opf_graph_get_distance (sg, &sg->node[p], &sg->node[q]);
 
                   if (weight < path_val[q])
                     {
@@ -113,7 +113,7 @@ mst_prototypes (struct subgraph * sg)
 }
 
 void
-opf_supervised_train (struct subgraph * sg)
+opf_supervised_train (struct opf_graph * sg)
 {
   int p, q, i;
   double tmp, weight;
@@ -161,7 +161,7 @@ opf_supervised_train (struct subgraph * sg)
             {
               if (path_val[p] < path_val[q])
                 {
-                  weight = subgraph_get_distance (sg, &sg->node[p], &sg->node[q]);
+                  weight = opf_graph_get_distance (sg, &sg->node[p], &sg->node[q]);
 
                   tmp = MAX (path_val[p], weight);
                   if (tmp < path_val[q])
@@ -182,7 +182,7 @@ opf_supervised_train (struct subgraph * sg)
 
 //Classification function: it simply classifies samples from sg -----
 void
-opf_supervised_classify (struct subgraph * sg_train, double *feat, int sample_n, int *label)
+opf_supervised_classify (struct opf_graph * sg_train, double *feat, int sample_n, int *label)
 {
   int i;
 
@@ -227,7 +227,7 @@ opf_supervised_classify (struct subgraph * sg_train, double *feat, int sample_n,
 
 
 static void
-supervised_classify_subgraph (struct subgraph * sg_train, struct subgraph * sg_eval)
+supervised_classify_opf_graph (struct opf_graph * sg_train, struct opf_graph * sg_eval)
 {
   int i;
 
@@ -256,7 +256,7 @@ supervised_classify_subgraph (struct subgraph * sg_train, struct subgraph * sg_e
           l = sg_train->ordered_list_of_nodes[j];
           assert (l >= 0 && l < sg_train->node_n);
 
-          weight = subgraph_get_distance (sg_train, &sg_train->node[l], &sg_eval->node[i]);
+          weight = opf_graph_get_distance (sg_train, &sg_train->node[l], &sg_eval->node[i]);
 
           tmp = MAX (sg_train->node[l].path_val, weight);
           if (tmp < minCost)
@@ -272,7 +272,7 @@ supervised_classify_subgraph (struct subgraph * sg_train, struct subgraph * sg_e
 
 
 static double
-accuracy (struct subgraph *sg)
+accuracy (struct opf_graph *sg)
 {
   int ok = 0;
   int i;
@@ -285,7 +285,7 @@ accuracy (struct subgraph *sg)
 
 /* Replace errors from evaluating set by non prototypes from training set */
 static void
-swap_wrong_prototypes (struct subgraph *sg_train, struct subgraph *sg_eval)
+swap_wrong_prototypes (struct opf_graph *sg_train, struct opf_graph *sg_eval)
 {
   int i;
   int nonprototypes = 0;
@@ -320,14 +320,14 @@ swap_wrong_prototypes (struct subgraph *sg_train, struct subgraph *sg_eval)
     }
 }
 
-/* create two pointers to a subgraph data,
+/* create two pointers to a opf_graph data,
    this function is used in some training modes to reorganize nodes */
 static void
-subgraph_split_mirrored (struct subgraph * sg, double split,
-                         struct subgraph * sg1, struct subgraph * sg2)
+opf_graph_split_mirrored (struct opf_graph * sg, double split,
+                         struct opf_graph * sg1, struct opf_graph * sg2)
 {
-  memset (sg1, 0xFF, sizeof(struct subgraph));
-  memset (sg2, 0xFF, sizeof(struct subgraph));
+  memset (sg1, 0xFF, sizeof(struct opf_graph));
+  memset (sg2, 0xFF, sizeof(struct opf_graph));
 
   sg1->node_n = sg->node_n * split;
   sg2->node_n = sg->node_n - sg1->node_n;
@@ -349,20 +349,20 @@ subgraph_split_mirrored (struct subgraph * sg, double split,
 #define ITER_MAX 10
 
 void
-opf_supervised_train_iterative (struct subgraph *sg, double split)
+opf_supervised_train_iterative (struct opf_graph *sg, double split)
 {
   int i = 0;
   double acc = DBL_MIN, acc_prev = DBL_MIN, delta;
 
-  struct subgraph sg_train, sg_eval;
-  subgraph_split_mirrored (sg, split, &sg_train, &sg_eval);
+  struct opf_graph sg_train, sg_eval;
+  opf_graph_split_mirrored (sg, split, &sg_train, &sg_eval);
 
   do
     {
       acc_prev = acc;
 
       opf_supervised_train (&sg_train);
-      supervised_classify_subgraph (&sg_train, &sg_eval);
+      supervised_classify_opf_graph (&sg_train, &sg_eval);
       acc = accuracy (&sg_eval);
 
       swap_wrong_prototypes (&sg_train, &sg_eval);
@@ -373,12 +373,12 @@ opf_supervised_train_iterative (struct subgraph *sg, double split)
   while ((delta > DBL_EPSILON) && (i < ITER_MAX));
 
   /* just the training part will remain */
-  subgraph_resize (sg, sg_train.node_n);
+  opf_graph_resize (sg, sg_train.node_n);
 }
 
 /* Move misclassified data from eval to sg */
 static void
-move_misclassified_nodes (struct subgraph *sg_train, struct subgraph *sg_eval, int *n)
+move_misclassified_nodes (struct opf_graph *sg_train, struct opf_graph *sg_eval, int *n)
 {
   int i;
   int misclassified_n = 0;
@@ -400,7 +400,7 @@ move_misclassified_nodes (struct subgraph *sg_train, struct subgraph *sg_eval, i
       if (sg_eval->node[i].label != sg_eval->node[i].label_true)
         {
           /* have in mind that sg_train and sg_eval
-             are mirrorred to the same subgraph, so
+             are mirrorred to the same opf_graph, so
              sg_train->node[sg_train->node_n] == sg_eval->node[0] */
           {
             struct snode tmp = sg_train->node[sg_train->node_n];
@@ -419,22 +419,22 @@ move_misclassified_nodes (struct subgraph *sg_train, struct subgraph *sg_eval, i
 }
 
 void
-opf_supervised_train_agglomerative (struct subgraph *sg, double split)
+opf_supervised_train_agglomerative (struct opf_graph *sg, double split)
 {
     int n;
-    struct subgraph sg_train, sg_eval;
-    subgraph_split_mirrored (sg, split, &sg_train, &sg_eval);
+    struct opf_graph sg_train, sg_eval;
+    opf_graph_split_mirrored (sg, split, &sg_train, &sg_eval);
 
     /* while there exists misclassified samples in eval */
     do
       {
         n = 0;
         opf_supervised_train (&sg_train);
-        supervised_classify_subgraph (&sg_train, &sg_eval);
+        supervised_classify_opf_graph (&sg_train, &sg_eval);
         move_misclassified_nodes (&sg_train, &sg_eval, &n);
       }
     while(n > 0);
 
   /* just the training part will remain */
-  subgraph_resize (sg, sg_train.node_n);
+  opf_graph_resize (sg, sg_train.node_n);
 }

@@ -1,6 +1,6 @@
 # includes
 
-cdef extern from "subgraph.h":
+cdef extern from "graph.h":
     cdef enum METRIC:
       EUCLIDIAN          = 0
       LOG_EUCLIDIAN      = 1
@@ -12,31 +12,31 @@ cdef extern from "subgraph.h":
       BRAY_CURTIS        = 7
       NO_METRIC          = 8
 
-    cdef struct subgraph:
+    cdef struct opf_graph:
       pass
 
-    subgraph * subgraph_create       (int node_n)
-    void       subgraph_destroy      (subgraph ** sg)
+    opf_graph * opf_graph_create       (int node_n)
+    void       opf_graph_destroy      (opf_graph ** sg)
 
-    void       subgraph_set_metric   (subgraph *sg,
+    void       opf_graph_set_metric   (opf_graph *sg,
                                       double (*arc_weight) (double *f1, double *f2, int n),
                                       METRIC m)
 
-    bint       subgraph_set_feature  (subgraph *sg, double *feat, int *label, int feat_n)
+    bint       opf_graph_set_feature  (opf_graph *sg, double *feat, int *label, int feat_n)
 
-    bint       subgraph_set_precomputed_distance (subgraph *sg,
+    bint       opf_graph_set_precomputed_distance (opf_graph *sg,
                                                   double *distance,
                                                   int *label)
 
-    void       subgraph_pdf_evaluate (subgraph * sg)
+    void       opf_graph_pdf_evaluate (opf_graph * sg)
 
 cdef extern from "supervised.h":
-    void opf_supervised_train    (subgraph * sg)
-    void opf_supervised_train_iterative (subgraph *sg, double split)
-    void opf_supervised_train_agglomerative (subgraph *sg, double split)
-    void opf_supervised_classify (subgraph * sgtrain, double *feat, int sample_n, int *label)
+    void opf_supervised_train    (opf_graph * sg)
+    void opf_supervised_train_iterative (opf_graph *sg, double split)
+    void opf_supervised_train_agglomerative (opf_graph *sg, double split)
+    void opf_supervised_classify (opf_graph * sgtrain, double *feat, int sample_n, int *label)
 
 cdef extern from "unsupervised.h":
-    void opf_best_k_min_cut (subgraph * sg, int kmin, int kmax)
-    void opf_unsupervised_clustering (subgraph * sg)
-    void opf_unsupervised_knn_classify (subgraph * sgtrain, double *feat, int sample_n, int *label)
+    void opf_best_k_min_cut (opf_graph * sg, int kmin, int kmax)
+    void opf_unsupervised_clustering (opf_graph * sg)
+    void opf_unsupervised_knn_classify (opf_graph * sgtrain, double *feat, int sample_n, int *label)

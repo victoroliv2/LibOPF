@@ -3,9 +3,9 @@
 #include "realheap.h"
 #include "knn.h"
 
-// Create adjacent list in subgraph: a knn graph
+// Create adjacent list in opf_graph: a knn graph
 void
-subgraph_knn_create (struct subgraph * sg, int knn)
+opf_graph_knn_create (struct opf_graph * sg, int knn)
 {
   int i, j, l, k;
   double dist;
@@ -23,7 +23,7 @@ subgraph_knn_create (struct subgraph * sg, int knn)
         {
           if (j != i)
             {
-              d[knn] = subgraph_get_distance (sg, &sg->node[i], &sg->node[j]);
+              d[knn] = opf_graph_get_distance (sg, &sg->node[i], &sg->node[j]);
 
               nn[knn] = j;
               k = knn;
@@ -62,7 +62,7 @@ subgraph_knn_create (struct subgraph * sg, int knn)
 // Returns an array with the maximum distances
 // for each k=1,2,...,kmax
 double *
-subgraph_knn_max_distances_evaluate (struct subgraph * sg, int kmax)
+opf_graph_knn_max_distances_evaluate (struct opf_graph * sg, int kmax)
 {
   int i, j, l, k;
   double dist;
@@ -80,7 +80,7 @@ subgraph_knn_max_distances_evaluate (struct subgraph * sg, int kmax)
         {
           if (j != i)
             {
-              d[kmax] = subgraph_get_distance (sg, &sg->node[i], &sg->node[j]);
+              d[kmax] = opf_graph_get_distance (sg, &sg->node[i], &sg->node[j]);
 
               nn[kmax] = j;
               k = kmax;
@@ -125,7 +125,7 @@ subgraph_knn_max_distances_evaluate (struct subgraph * sg, int kmax)
 
 // Destroy Arcs
 void
-subgraph_knn_destroy (struct subgraph * sg)
+opf_graph_knn_destroy (struct opf_graph * sg)
 {
   int i;
 
@@ -138,7 +138,7 @@ subgraph_knn_destroy (struct subgraph * sg)
 
 // OPFClustering computation only for sg->k_best neighbors
 void
-subgraph_k_max_clustering (struct subgraph * sg)
+opf_graph_k_max_clustering (struct opf_graph * sg)
 {
   struct set *adj_i, *adj_j;
   char insert_i;
@@ -244,7 +244,7 @@ subgraph_k_max_clustering (struct subgraph * sg)
 
 // PDF computation only for sg->k_best neighbors
 void
-subgraph_k_max_pdf (struct subgraph * sg)
+opf_graph_k_max_pdf (struct opf_graph * sg)
 {
   int i, nelems;
   const int kmax = sg->k_best;
@@ -267,7 +267,7 @@ subgraph_k_max_pdf (struct subgraph * sg)
       //neighbors yet, i.e. nplatadj = 0 for every node in sg
       for (k = 1; k <= kmax; k++)
         {
-          dist = subgraph_get_distance (sg, &sg->node[i], &sg->node[adj->elem]);
+          dist = opf_graph_get_distance (sg, &sg->node[i], &sg->node[adj->elem]);
 
           value[i] += exp (-dist / sg->k);
           adj = adj->next;
@@ -305,7 +305,7 @@ subgraph_k_max_pdf (struct subgraph * sg)
 
 // Normalized cut computed only for sg->k_best neighbors
 double
-subgraph_k_max_normalized_cut (struct subgraph * sg)
+opf_graph_k_max_normalized_cut (struct opf_graph * sg)
 {
   int l, p, q, k;
   const int kmax = sg->k_best;
@@ -327,7 +327,7 @@ subgraph_k_max_normalized_cut (struct subgraph * sg)
         {
           q = Saux->elem;
 
-          dist = subgraph_get_distance (sg, &sg->node[p], &sg->node[q]);
+          dist = opf_graph_get_distance (sg, &sg->node[p], &sg->node[q]);
 
           if (dist > 0.0)
             {

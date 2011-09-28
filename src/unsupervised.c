@@ -1,6 +1,6 @@
 #include "common.h"
 #include "set.h"
-#include "subgraph.h"
+#include "graph.h"
 #include "realheap.h"
 #include "metrics.h"
 #include "knn.h"
@@ -8,7 +8,7 @@
 #include "unsupervised.h"
 
 static void
-remove_plateau_neighbors (struct subgraph * sg)
+remove_plateau_neighbors (struct opf_graph * sg)
 {
   int i,j;
   struct set *next_adj=NULL;
@@ -35,12 +35,12 @@ remove_plateau_neighbors (struct subgraph * sg)
 
 // Estimate the best k by minimum cut
 void
-opf_best_k_min_cut (struct subgraph * sg, int kmin, int kmax)
+opf_best_k_min_cut (struct opf_graph * sg, int kmin, int kmax)
 {
   int k, k_best = kmax;
   double mincut = DBL_MAX, nc;
 
-  double *maxdists = subgraph_knn_max_distances_evaluate (sg, kmax); // stores the maximum distances for every k=1,2,...,kmax
+  double *maxdists = opf_graph_knn_max_distances_evaluate (sg, kmax); // stores the maximum distances for every k=1,2,...,kmax
 
   // Find the best k
   for (k = kmin; (k <= kmax) && (mincut != 0.0); k++)
@@ -48,11 +48,11 @@ opf_best_k_min_cut (struct subgraph * sg, int kmin, int kmax)
       sg->df = maxdists[k - 1];
       sg->k_best = k;
 
-      subgraph_k_max_pdf (sg);
+      opf_graph_k_max_pdf (sg);
 
-      subgraph_k_max_clustering (sg);
+      opf_graph_k_max_clustering (sg);
 
-      nc = subgraph_k_max_normalized_cut (sg);
+      nc = opf_graph_k_max_normalized_cut (sg);
 
       if (nc < mincut)
         {
@@ -63,19 +63,19 @@ opf_best_k_min_cut (struct subgraph * sg, int kmin, int kmax)
       remove_plateau_neighbors(sg);
     }
   free (maxdists);
-  subgraph_knn_destroy (sg);
+  opf_graph_knn_destroy (sg);
 
   sg->k_best = k_best;
 
-  subgraph_knn_create (sg, sg->k_best);
-  subgraph_pdf_evaluate (sg);
+  opf_graph_knn_create (sg, sg->k_best);
+  opf_graph_pdf_evaluate (sg);
 }
 
 //Training function: it computes unsupervised training for the
 //pre-computed best k.
 
 void
-opf_unsupervised_clustering (struct subgraph * sg)
+opf_unsupervised_clustering (struct opf_graph * sg)
 {
   struct set *adj_i, *adj_j;
   char insert_i;
@@ -170,7 +170,7 @@ opf_unsupervised_clustering (struct subgraph * sg)
 // the OPF-clustering labels from sg_train
 
 void
-opf_unsupervised_knn_classify (struct subgraph * sg_train, double *feat, int sample_n, int *label)
+opf_unsupervised_knn_classify (struct opf_graph * sg_train, double *feat, int sample_n, int *label)
 {
   int i, j;
   double weight;
