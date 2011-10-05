@@ -49,7 +49,7 @@ cdef class OPF:
       self.node_n = <int>X.shape[0]
       self.feat_n = <int>X.shape[1]
 
-      if X.shape[0] != Y.shape[0]:
+      if Y and X.shape[0] != Y.shape[0]:
         raise Exception("Shape mismatch")
 
       if self.precomputed_distance and X.shape[0] != X.shape[1]:
