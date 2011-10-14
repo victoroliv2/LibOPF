@@ -30,6 +30,21 @@ cdef extern from "graph.h":
 
     void       opf_graph_pdf_evaluate (opf_graph * sg)
 
+    void       opf_graph_set_fit_data (opf_graph * sg,
+                                       double *path_val,
+                                       int *label,
+                                       int *ordered_list_of_nodes,
+                                       int *position,
+                                       double *radius)
+
+    void       opf_graph_get_fit_data (opf_graph * sg,
+                                       double *path_val,
+                                       int *label,
+                                       int *ordered_list_of_nodes,
+                                       int *position,
+                                       double *radius,
+                                       double *data)
+
 cdef extern from "supervised.h":
     void opf_supervised_train    (opf_graph * sg)
     void opf_supervised_train_iterative (opf_graph *sg, double split)

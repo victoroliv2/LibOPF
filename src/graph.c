@@ -341,3 +341,51 @@ opf_graph_resize (struct opf_graph * sg, int node_n)
       sg->pdist_train_stride = sg->node_n;
     }
 }
+
+/* these functions are used to storage an OPF instance,
+   TODO: I have to think if I can keep a pointer to the distance function
+   in this case */
+void
+opf_graph_set_fit_data (struct opf_graph * sg,
+                        double *path_val,
+                        int *label,
+                        int *ordered_list_of_nodes,
+                        int *position,
+                        double *radius)
+{
+  int i;
+
+  for (i=0; i < sg->node_n; i++)
+    {
+      sg->node[i].path_val         = path_val[i];
+      sg->node[i].label            = label[i];
+      sg->ordered_list_of_nodes[i] = ordered_list_of_nodes[i];
+      sg->node[i].position         = position[i];
+      sg->node[i].radius           = radius[i];
+    }
+
+}
+
+void
+opf_graph_get_fit_data (struct opf_graph * sg,
+                        double *path_val,
+                        int *label,
+                        int *ordered_list_of_nodes,
+                        int *position,
+                        double *radius,
+                        double *data)
+{
+  int i;
+
+  for (i=0; i < sg->node_n; i++)
+    {
+      path_val[i]              = sg->node[i].path_val;
+      label[i]                 = sg->node[i].label;
+      ordered_list_of_nodes[i] = sg->ordered_list_of_nodes[i];
+      position[i]              = sg->node[i].position;
+      radius[i]                = sg->node[i].radius;
+    }
+
+  if (!sg->pdist)
+    memcpy(data, sg->feat_data, sizeof(double)*sg->node_n*sg->feat_n);
+}

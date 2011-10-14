@@ -72,6 +72,7 @@ struct opf_graph
                                   */
 
   double *feat_data; /* memory pointer to all features data */
+
   double (*arc_weight) (double *f1, double *f2, int n);
 
   /* precomputed distance matrix */
@@ -101,5 +102,22 @@ double opf_graph_get_distance (struct opf_graph * sg, struct snode *i, struct sn
   else
     return sg->arc_weight(i->feat, j->feat, sg->feat_n);
 }
+
+void
+opf_graph_set_fit_data (struct opf_graph * sg,
+                        double *path_val,
+                        int *label,
+                        int *ordered_list_of_nodes,
+                        int *position,
+                        double *radius);
+
+void
+opf_graph_get_fit_data (struct opf_graph * sg,
+                        double *path_val,
+                        int *label,
+                        int *ordered_list_of_nodes,
+                        int *position,
+                        double *radius,
+                        double *data);
 
 #endif /* _SUBGRAPH_H_ */
