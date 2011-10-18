@@ -270,17 +270,39 @@ supervised_classify_opf_graph (struct opf_graph * sg_train, struct opf_graph * s
     }
 }
 
-
+/*
+  OPF Accuracy Function
+ */
 static double
 accuracy (struct opf_graph *sg)
 {
-  int ok = 0;
   int i;
+  int *fp = (int*) malloc(sizeof(int)*sg->label_n);
+  int *fn = (int*) malloc(sizeof(int)*sg->label_n);
+  int *n  = (int*) malloc(sizeof(int)*sg->label_n);
+  memset(fp, 0, sizeof(int)*sg->label_n);
+  memset(fn, 0, sizeof(int)*sg->label_n);
+  memset(n,  0, sizeof(int)*sg->label_n);
+
+  double sum_e;
 
   for (i=0; i < sg->node_n; i++)
-    (sg->node[i].label == sg->node[i].label_true)? ok++ : 0;
+    {
+      /* false positives */
+      fp[sg->node[i].label]      += (sg->node[i].label != sg->node[i].label_true);
+      /* false negatives */
+      fn[sg->node[i].label_true] += (sg->node[i].label != sg->node[i].label_true);
+      /* number of elements */
+      n[sg->node[i].label_true] ++;
+    }
 
-  return (double)(ok)/(double)(sg->node_n);
+  for (i=0; i < sg->label_n; i++)
+    {
+      /* e_i,1 + e_i,2 */
+      sum_e += (double)(fp[i]) / (sg->node_n - n[i]) + (double)(fn[i]) / n[i];
+    }
+
+  return 1.0 - sum_e / (2.0 * sg->label_n);
 }
 
 /* Replace errors from evaluating set by non prototypes from training set */
