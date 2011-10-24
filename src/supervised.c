@@ -48,7 +48,7 @@ mst_prototypes (struct opf_graph * sg)
   struct real_heap *Q = NULL;
   double *path_val = NULL;
   int pred;
-  double nproto;
+  int nproto;
 
   // initialization
   path_val = alloc_double (sg->node_n);
@@ -64,7 +64,7 @@ mst_prototypes (struct opf_graph * sg)
   sg->node[0].pred = NIL;
   real_heap_insert (Q, 0);
 
-  nproto = 0.0f;
+  nproto = 0;
 
   // Prim's algorithm for Minimum Spanning Tree
   while (!real_heap_is_empty (Q))
@@ -110,6 +110,10 @@ mst_prototypes (struct opf_graph * sg)
   real_heap_destroy (&Q);
   free (path_val);
 
+  /* the algorithm will work even if there
+     is just one class in the training set */
+  if (nproto == 0)
+    sg->node[0].status = STATUS_PROTOTYPE;
 }
 
 void
