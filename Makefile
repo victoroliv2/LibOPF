@@ -16,6 +16,9 @@ libopf: libopf-build
 libopf-build: \
 aux
 
+	mkdir -k src
+	mkdir -k obj
+
 	$(CC) -fPIC -shared -o $(LIB)/libopf.so \
 $(OBJ)/common.o \
 $(OBJ)/set.o \
