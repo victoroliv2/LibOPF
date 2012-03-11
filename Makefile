@@ -9,40 +9,28 @@ FLAGS= -march=native -O3 -Wall -fPIC -fopenmp -D NTHREADS=4 -lgomp
 
 INCFLAGS = -I$(INCLUDE)
 
+SRCFILES = $(shell ls ${SRC})
+OBJFILES = $(SRCFILES:%.c=%.o)
+
 all: libopf
 
 libopf: libopf-build
 
+create_folders:
+	mkdir -p lib
+	mkdir -p obj
+
 libopf-build: \
+create_folders \
 aux
-
-	mkdir -k src
-	mkdir -k obj
-
 	$(CC) -fPIC -shared -o $(LIB)/libopf.so \
-$(OBJ)/common.o \
-$(OBJ)/set.o \
-$(OBJ)/realheap.o \
-$(OBJ)/linearalloc.o \
-$(OBJ)/metrics.o \
-$(OBJ)/measures.o \
-$(OBJ)/graph.o \
-$(OBJ)/knn.o \
-$(OBJ)/supervised.o \
-$(OBJ)/unsupervised.o
+$(OBJ)/*.o
 
+aux: $(OBJFILES)
 
-aux: $(SRC)/common.c $(SRC)/set.c $(SRC)/realheap.c $(SRC)/linearalloc.c  $(SRC)/metrics.c  $(SRC)/measures.c $(SRC)/graph.c $(SRC)/knn.c $(SRC)/supervised.c $(SRC)/unsupervised.c
-	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/common.c       -o $(OBJ)/common.o
-	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/set.c          -o $(OBJ)/set.o
-	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/realheap.c     -o $(OBJ)/realheap.o
-	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/linearalloc.c  -o $(OBJ)/linearalloc.o
-	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/metrics.c      -o $(OBJ)/metrics.o
-	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/measures.c     -o $(OBJ)/measures.o
-	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/graph.c        -o $(OBJ)/graph.o
-	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/knn.c          -o $(OBJ)/knn.o
-	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/supervised.c   -o $(OBJ)/supervised.o
-	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/unsupervised.c -o $(OBJ)/unsupervised.o
+%.o: $(SRC)/%.c $(INCLUDE)/%.h
+	$(CC) $(FLAGS) $(INCFLAGS) -c $(SRC)/$*.c -o $(OBJ)/$*.o
+
 
 ## Cleaning-up
 
